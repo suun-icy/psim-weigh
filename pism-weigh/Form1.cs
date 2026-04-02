@@ -326,8 +326,18 @@ namespace pism_weigh
 
         private void button6_Click(object sender, EventArgs e)
         {
-            print print = new print();
+            print print = new print(OnRecordReprinted);
             print.ShowDialog();
+        }
+
+        private void OnRecordReprinted(Models.WeighRecord record)
+        {
+            if (record == null)
+            {
+                return;
+            }
+
+            label7.Text = "最近重打：" + record.PlateNumber + "（打印次数 " + record.PrintCount + "）";
         }
 
 
