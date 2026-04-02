@@ -14,7 +14,7 @@ namespace pism_weigh.Models
         /// <summary>
         /// 唯一标识符
         /// </summary>
-        public string Id { get; set; } = Guid.NewGuid().ToString("N");
+        public string Id { get; set; }
         
         /// <summary>
         /// 车牌号（完整）
@@ -124,12 +124,22 @@ namespace pism_weigh.Models
         /// <summary>
         /// 创建时间
         /// </summary>
-        public DateTime CreateTime { get; set; } = DateTime.Now;
+        public DateTime CreateTime { get; set; }
         
         /// <summary>
         /// 更新时间
         /// </summary>
-        public DateTime UpdateTime { get; set; } = DateTime.Now;
+        public DateTime UpdateTime { get; set; }
+        
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        public WeighRecord()
+        {
+            Id = Guid.NewGuid().ToString("N");
+            CreateTime = DateTime.Now;
+            UpdateTime = DateTime.Now;
+        }
     }
     
     /// <summary>

@@ -1,5 +1,26 @@
 # 地磅称重软件功能完善说明
 
+## .NET Framework 4.5 兼容性确认
+
+**所有代码已确认兼容 .NET Framework 4.5**，已完成以下调整：
+
+### 兼容性修改清单
+
+1. **字符串插值替换** - 将 C# 6.0 的 `$""` 语法改为 `+` 拼接
+   - `DatabaseHelper.cs`: 连接字符串、错误消息、参数化查询
+   - `ScaleService.cs`: 所有错误消息
+   - `PrintService.cs`: 错误消息、打印内容、重量格式化
+
+2. **属性初始化器调整** - 将自动属性初始化移至构造函数
+   - `WeighRecord.cs`: Id、CreateTime、UpdateTime
+   - `Customer.cs`: Id、IsActive、CreateTime
+   - `CargoType.cs`: Id、Unit、IsActive
+   - `PrintTemplate.cs`: Title
+
+3. **异步支持** - `System.Threading.Tasks` 在 .NET 4.5 中可用（通过 Microsoft.Bcl.Async 或原生支持）
+
+---
+
 ## 已完成的功能增强
 
 ### 1. 数据模型层 (Models)

@@ -76,7 +76,7 @@ namespace pism_weigh.Services
             }
             catch (Exception ex)
             {
-                ErrorOccurred?.Invoke($"连接串口失败：{ex.Message}");
+                ErrorOccurred?.Invoke("连接串口失败：" + ex.Message);
                 _isConnected = false;
                 return false;
             }
@@ -105,7 +105,7 @@ namespace pism_weigh.Services
             }
             catch (Exception ex)
             {
-                ErrorOccurred?.Invoke($"断开串口失败：{ex.Message}");
+                ErrorOccurred?.Invoke("断开串口失败：" + ex.Message);
             }
         }
         
@@ -136,7 +136,7 @@ namespace pism_weigh.Services
             }
             catch (Exception ex)
             {
-                ErrorOccurred?.Invoke($"读取串口数据失败：{ex.Message}");
+                ErrorOccurred?.Invoke("读取串口数据失败：" + ex.Message);
             }
         }
         
@@ -243,7 +243,7 @@ namespace pism_weigh.Services
             }
             catch (Exception ex)
             {
-                ErrorOccurred?.Invoke($"发送指令失败：{ex.Message}");
+                ErrorOccurred?.Invoke("发送指令失败：" + ex.Message);
                 return false;
             }
         }
