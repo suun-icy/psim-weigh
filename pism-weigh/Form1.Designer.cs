@@ -46,11 +46,15 @@ namespace pism_weigh
             this.panel2 = new System.Windows.Forms.Panel();
             this.label14 = new System.Windows.Forms.Label();
             this.label13 = new System.Windows.Forms.Label();
+            this.textBoxCurrentWeight = new System.Windows.Forms.TextBox();
+            this.label16 = new System.Windows.Forms.Label();
             this.textBox6 = new System.Windows.Forms.TextBox();
             this.button10 = new System.Windows.Forms.Button();
             this.button9 = new System.Windows.Forms.Button();
             this.textBox_receive = new System.Windows.Forms.TextBox();
             this.panel3 = new System.Windows.Forms.Panel();
+            this.label16 = new System.Windows.Forms.Label();
+            this.comboBoxPlateHistory = new System.Windows.Forms.ComboBox();
             this.label15 = new System.Windows.Forms.Label();
             this.label16 = new System.Windows.Forms.Label();
             this.comboBox8 = new System.Windows.Forms.ComboBox();
@@ -226,6 +230,8 @@ namespace pism_weigh
             // 
             this.panel2.Controls.Add(this.label14);
             this.panel2.Controls.Add(this.label13);
+            this.panel2.Controls.Add(this.textBoxCurrentWeight);
+            this.panel2.Controls.Add(this.label16);
             this.panel2.Controls.Add(this.textBox6);
             this.panel2.Controls.Add(this.button10);
             this.panel2.Controls.Add(this.button9);
@@ -249,21 +255,42 @@ namespace pism_weigh
             // 
             this.label13.AutoSize = true;
             this.label13.Font = new System.Drawing.Font("宋体", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.label13.Location = new System.Drawing.Point(133, 5);
+            this.label13.Location = new System.Drawing.Point(10, 7);
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(85, 19);
             this.label13.TabIndex = 4;
-            this.label13.Text = "称重显示";
+            this.label13.Text = "稳定重量";
+            // 
+            // textBoxCurrentWeight
+            // 
+            this.textBoxCurrentWeight.Font = new System.Drawing.Font("宋体", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.textBoxCurrentWeight.Location = new System.Drawing.Point(117, 33);
+            this.textBoxCurrentWeight.Multiline = true;
+            this.textBoxCurrentWeight.Name = "textBoxCurrentWeight";
+            this.textBoxCurrentWeight.ReadOnly = true;
+            this.textBoxCurrentWeight.Size = new System.Drawing.Size(234, 28);
+            this.textBoxCurrentWeight.TabIndex = 6;
+            this.textBoxCurrentWeight.Text = "--";
+            // 
+            // label16
+            // 
+            this.label16.AutoSize = true;
+            this.label16.Font = new System.Drawing.Font("宋体", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.label16.Location = new System.Drawing.Point(10, 36);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(85, 19);
+            this.label16.TabIndex = 7;
+            this.label16.Text = "当前重量";
             // 
             // textBox6
             // 
             this.textBox6.Font = new System.Drawing.Font("宋体", 36F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.textBox6.Location = new System.Drawing.Point(10, 32);
+            this.textBox6.Location = new System.Drawing.Point(10, 63);
             this.textBox6.Multiline = true;
             this.textBox6.Name = "textBox6";
             this.textBox6.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.textBox6.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBox6.Size = new System.Drawing.Size(341, 182);
+            this.textBox6.Size = new System.Drawing.Size(341, 151);
             this.textBox6.TabIndex = 3;
             this.textBox6.TextChanged += new System.EventHandler(this.textBox6_TextChanged);
             // 
@@ -298,6 +325,8 @@ namespace pism_weigh
             // 
             // panel3
             // 
+            this.panel3.Controls.Add(this.label16);
+            this.panel3.Controls.Add(this.comboBoxPlateHistory);
             this.panel3.Controls.Add(this.label15);
             this.panel3.Controls.Add(this.label16);
             this.panel3.Controls.Add(this.comboBox8);
@@ -320,6 +349,27 @@ namespace pism_weigh
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(584, 189);
             this.panel3.TabIndex = 2;
+            // 
+            // label16
+            // 
+            this.label16.AutoSize = true;
+            this.label16.Location = new System.Drawing.Point(250, 146);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(53, 12);
+            this.label16.TabIndex = 19;
+            this.label16.Text = "历史车牌";
+            // 
+            // comboBoxPlateHistory
+            // 
+            this.comboBoxPlateHistory.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDown;
+            this.comboBoxPlateHistory.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.comboBoxPlateHistory.FormattingEnabled = true;
+            this.comboBoxPlateHistory.Location = new System.Drawing.Point(309, 139);
+            this.comboBoxPlateHistory.Name = "comboBoxPlateHistory";
+            this.comboBoxPlateHistory.Size = new System.Drawing.Size(272, 22);
+            this.comboBoxPlateHistory.TabIndex = 18;
+            this.comboBoxPlateHistory.SelectedIndexChanged += new System.EventHandler(this.comboBoxPlateHistory_SelectedIndexChanged);
+            this.comboBoxPlateHistory.TextChanged += new System.EventHandler(this.comboBoxPlateHistory_TextChanged);
             // 
             // label15
             // 
@@ -704,10 +754,12 @@ namespace pism_weigh
         private System.Windows.Forms.TextBox textBox6;
         private System.Windows.Forms.Label label14;
         private System.Windows.Forms.Label label13;
+        private System.Windows.Forms.TextBox textBoxCurrentWeight;
+        private System.Windows.Forms.Label label16;
         private System.Windows.Forms.Label label15;
         private System.Windows.Forms.RadioButton radioButton4;
         private System.Windows.Forms.RadioButton radioButton3;
         private System.Windows.Forms.Label label16;
-        private System.Windows.Forms.ComboBox comboBox8;
+        private System.Windows.Forms.ComboBox comboBoxPlateHistory;
     }
 }
