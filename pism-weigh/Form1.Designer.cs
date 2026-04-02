@@ -51,6 +51,8 @@ namespace pism_weigh
             this.button9 = new System.Windows.Forms.Button();
             this.textBox_receive = new System.Windows.Forms.TextBox();
             this.panel3 = new System.Windows.Forms.Panel();
+            this.label16 = new System.Windows.Forms.Label();
+            this.comboBoxPlateHistory = new System.Windows.Forms.ComboBox();
             this.label15 = new System.Windows.Forms.Label();
             this.radioButton4 = new System.Windows.Forms.RadioButton();
             this.radioButton3 = new System.Windows.Forms.RadioButton();
@@ -296,6 +298,8 @@ namespace pism_weigh
             // 
             // panel3
             // 
+            this.panel3.Controls.Add(this.label16);
+            this.panel3.Controls.Add(this.comboBoxPlateHistory);
             this.panel3.Controls.Add(this.label15);
             this.panel3.Controls.Add(this.radioButton4);
             this.panel3.Controls.Add(this.radioButton3);
@@ -316,6 +320,27 @@ namespace pism_weigh
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(584, 189);
             this.panel3.TabIndex = 2;
+            // 
+            // label16
+            // 
+            this.label16.AutoSize = true;
+            this.label16.Location = new System.Drawing.Point(250, 146);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(53, 12);
+            this.label16.TabIndex = 19;
+            this.label16.Text = "历史车牌";
+            // 
+            // comboBoxPlateHistory
+            // 
+            this.comboBoxPlateHistory.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDown;
+            this.comboBoxPlateHistory.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.comboBoxPlateHistory.FormattingEnabled = true;
+            this.comboBoxPlateHistory.Location = new System.Drawing.Point(309, 139);
+            this.comboBoxPlateHistory.Name = "comboBoxPlateHistory";
+            this.comboBoxPlateHistory.Size = new System.Drawing.Size(272, 22);
+            this.comboBoxPlateHistory.TabIndex = 18;
+            this.comboBoxPlateHistory.SelectedIndexChanged += new System.EventHandler(this.comboBoxPlateHistory_SelectedIndexChanged);
+            this.comboBoxPlateHistory.TextChanged += new System.EventHandler(this.comboBoxPlateHistory_TextChanged);
             // 
             // label15
             // 
@@ -685,6 +710,7 @@ namespace pism_weigh
         private System.Windows.Forms.Label label15;
         private System.Windows.Forms.RadioButton radioButton4;
         private System.Windows.Forms.RadioButton radioButton3;
+        private System.Windows.Forms.Label label16;
+        private System.Windows.Forms.ComboBox comboBoxPlateHistory;
     }
 }
-
