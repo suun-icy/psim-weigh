@@ -14,7 +14,7 @@ namespace pism_weigh.Models
         /// <summary>
         /// 客户 ID
         /// </summary>
-        public string Id { get; set; } = Guid.NewGuid().ToString("N");
+        public string Id { get; set; }
         
         /// <summary>
         /// 客户名称
@@ -49,12 +49,22 @@ namespace pism_weigh.Models
         /// <summary>
         /// 是否启用
         /// </summary>
-        public bool IsActive { get; set; } = true;
+        public bool IsActive { get; set; }
         
         /// <summary>
         /// 创建时间
         /// </summary>
-        public DateTime CreateTime { get; set; } = DateTime.Now;
+        public DateTime CreateTime { get; set; }
+        
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        public Customer()
+        {
+            Id = Guid.NewGuid().ToString("N");
+            IsActive = true;
+            CreateTime = DateTime.Now;
+        }
     }
     
     /// <summary>
@@ -86,7 +96,7 @@ namespace pism_weigh.Models
         /// <summary>
         /// 货物类型 ID
         /// </summary>
-        public string Id { get; set; } = Guid.NewGuid().ToString("N");
+        public string Id { get; set; }
         
         /// <summary>
         /// 类型名称
@@ -101,7 +111,7 @@ namespace pism_weigh.Models
         /// <summary>
         /// 单位
         /// </summary>
-        public string Unit { get; set; } = "吨";
+        public string Unit { get; set; }
         
         /// <summary>
         /// 备注
@@ -111,6 +121,16 @@ namespace pism_weigh.Models
         /// <summary>
         /// 是否启用
         /// </summary>
-        public bool IsActive { get; set; } = true;
+        public bool IsActive { get; set; }
+        
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        public CargoType()
+        {
+            Id = Guid.NewGuid().ToString("N");
+            Unit = "吨";
+            IsActive = true;
+        }
     }
 }

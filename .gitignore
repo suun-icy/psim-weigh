@@ -1,56 +1,40 @@
 ```
 # Build artifacts
+*.o
 *.obj
 *.exe
 *.dll
-*.pdb
-*.userprefs
-*.cache
-*.compiled
-[Bb]in/
-[Oo]bj/
-[Dd]ebug*/
-[Rr]elease*/
-x64/
-x86/
-build/
-dist/
+*.so
+*.a
+*.out
 
 # Dependencies
 packages/
-node_modules/
-vendor/
+bin/
+obj/
 
-# Logs
+# Logs and temp files
 *.log
-
-# User-specific files
-.vs/
-*.user
-*.userosscache
-*.suo
-*.csproj.user
+*.tmp
+*.swp
 
 # Environment
 .env
 .env.local
-*.env
+*.env.*
+
+# Editors
+.vscode/
+.idea/
+*.userprefs
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
 
 # OS generated files
 .DS_Store
 Thumbs.db
 ehthumbs.db
 Icon?
-desktop.ini
-
-# Testing
-TestResults/
-
-# IDE
-.vscode/
-.idea/
-
-# NuGet
-*.nupkg
-.nuget/
 ```

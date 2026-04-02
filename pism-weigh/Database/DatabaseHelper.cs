@@ -14,7 +14,10 @@ namespace pism_weigh.Database
     public class DatabaseHelper
     {
         private static readonly string DbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "weigh.db");
-        private static readonly string ConnectionString = $"Data Source={DbPath};Version=3;";
+        private static string ConnectionString
+        {
+            get { return "Data Source=" + DbPath + ";Version=3;"; }
+        }
 
         /// <summary>
         /// 初始化数据库
@@ -111,7 +114,7 @@ namespace pism_weigh.Database
             }
             catch (Exception ex)
             {
-                throw new Exception($"数据库初始化失败：{ex.Message}");
+                throw new Exception("数据库初始化失败：" + ex.Message);
             }
         }
 
@@ -263,7 +266,7 @@ namespace pism_weigh.Database
         {
             var list = new List<WeighRecord>();
             var sql = "SELECT * FROM WeighRecords WHERE PlateNumber LIKE @PlateNumber ORDER BY CreateTime DESC";
-            var dt = ExecuteQuery(sql, new SQLiteParameter("@PlateNumber", $"%{plateNumber}%"));
+            var dt = ExecuteQuery(sql, new SQLiteParameter("@PlateNumber", "%" + plateNumber + "%"));
             
             foreach (DataRow row in dt.Rows)
             {
