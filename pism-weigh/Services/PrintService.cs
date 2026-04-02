@@ -66,7 +66,7 @@ namespace pism_weigh.Services
             }
             catch (Exception ex)
             {
-                PrintCompleted?.Invoke(false, $"打印失败：{ex.Message}");
+                PrintCompleted?.Invoke(false, "打印失败：" + ex.Message);
                 return false;
             }
         }
@@ -155,7 +155,7 @@ namespace pism_weigh.Services
                     y += 25;
                     g.DrawString("司机签字：_________________", signFont, Brushes.Black, x, y);
                     y += 25;
-                    g.DrawString($"打印时间：{DateTime.Now:yyyy-MM-dd HH:mm:ss}", signFont, Brushes.Black, x, y);
+                    g.DrawString("打印时间：" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), signFont, Brushes.Black, x, y);
                 }
             }
         }
@@ -174,9 +174,9 @@ namespace pism_weigh.Services
                 ("收货单位", record.Receiver ?? "-"),
                 ("司机姓名", record.DriverName ?? "-"),
                 ("联系电话", record.DriverPhone ?? "-"),
-                ("毛重", $"{record.GrossWeight:F3} 吨"),
-                ("皮重", $"{record.TareWeight:F3} 吨"),
-                ("净重", $"{record.NetWeight:F3} 吨"),
+                ("毛重", record.GrossWeight.ToString("F3") + " 吨"),
+                ("皮重", record.TareWeight.ToString("F3") + " 吨"),
+                ("净重", record.NetWeight.ToString("F3") + " 吨"),
                 ("第一次称重", record.FirstWeighTime?.ToString("yyyy-MM-dd HH:mm:ss") ?? "-"),
                 ("第二次称重", record.SecondWeighTime?.ToString("yyyy-MM-dd HH:mm:ss") ?? "-"),
                 ("备注", record.Remark ?? "-")
@@ -220,7 +220,7 @@ namespace pism_weigh.Services
     /// </summary>
     public class PrintTemplate
     {
-        public string Title { get; set; } = "称重单";
+        public string Title { get; set; }
         public float PageWidth { get; set; } = 210; // mm
         public float PageHeight { get; set; } = 297; // mm
         public float MarginLeft { get; set; } = 20;
@@ -270,5 +270,13 @@ namespace pism_weigh.Services
             MarginTop = 5,
             RowHeight = 6
         };
+        
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        public PrintTemplate()
+        {
+            Title = "称重单";
+        }
     }
 }
