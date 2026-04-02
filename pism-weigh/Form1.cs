@@ -1,13 +1,15 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using pism_weigh.Services;
+using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO.Ports;
 using System.Linq;
 using System.Text;
-using System.Collections.Specialized;
 using System.Windows.Forms;
-using Newtonsoft.Json;
 
 namespace pism_weigh
 {
@@ -18,7 +20,8 @@ namespace pism_weigh
         private StringBuilder sb = new StringBuilder();
         string[] str = new string[50];
         int i = 0;
-        public Form1()
+        private ScaleService scaleService = new ScaleService();
+		public Form1()
         {
             InitializeComponent();
         }
@@ -136,6 +139,7 @@ namespace pism_weigh
                         serialPort1.StopBits = System.IO.Ports.StopBits.Two;
 
                     serialPort1.Open();     //打开串口
+					//scaleService.Connect();     //打开串口
                     button1.Text = "关闭串口";
 
                     button1.BackColor = Color.Firebrick;
@@ -192,76 +196,50 @@ namespace pism_weigh
 
         }
 
-        private void serialPort1_DataReceived(object sender, System.IO.Ports.SerialDataReceivedEventArgs e)
-        {
+		private void serialPort1_DataReceived(object sender, SerialDataReceivedEventArgs e)
+		{
+			try
+			{
+				int len = serialPort1.BytesToRead;
+				byte[] buffer = new byte[len];
 
-            int num = serialPort1.ReadBufferSize;      //获取接收缓冲区中的字节数
+				serialPort1.Read(buffer, 0, len);
 
-            byte[] received_buf = new byte[num];    //声明一个大小为num的字节数据用于存放读出的byte型数据
-           
-            receive_count += num;                   //接收字节计数变量增加nun
-         //   serialPort1.Read(received_buf, 0, num);   //读取接收缓冲区中num个字节到byte数组中
+				receive_count += len;
 
-            sb.Clear();     //防止出错,首先清空字符串构造器
-                            //遍历数组进行字符串转化及拼接
-            try
-            {
-                //因为要访问UI资源，所以需要使用invoke方式同步ui
-                this.Invoke((EventHandler)(delegate
-                {
-   
-                    if (radioButton2.Checked)//选中HEX模式显示
-                    {
-                        foreach (byte b in received_buf)
-                        {
-                            sb.Append(b.ToString("X2") + ' ');    //将byte型数据转化为2位16进制文本显示,用空格隔开
-                        }
-                    }
-                    else
-                    {
-                        byte firstByte = Convert.ToByte(serialPort1.ReadByte());
-                        if (firstByte == 0x02)
-                        {
-                            int bytesRead = serialPort1.ReadBufferSize;
-                            //byte[] bytesData = new byte[bytesRead];
-                            byte byteData;
+				this.Invoke((Action)(() =>
+				{
+					// 👉 HEX显示
+					if (radioButton2.Checked)
+					{
+						string hex = BitConverter.ToString(buffer).Replace("-", " ");
+						textBox_receive.AppendText(hex + "\r\n");
+					}
+					else
+					{
+						// 👉 ASCII解析
+						string str = Encoding.ASCII.GetString(buffer);
 
-                            for (int i = 0; i < bytesRead - 1; i++)
-                            {
-                                byteData = Convert.ToByte(serialPort1.ReadByte());
-                                if (byteData == 0x03)//结束
-                                {
-                                    break;
-                                }
-                                received_buf[i] = byteData;
-                            }
-                            //strReceive = Encoding.Default.GetString(bytesData);
-                        }
-                        Array.Reverse(received_buf);
-                        //选中ASCII模式显示
-                        sb.Append(Encoding.ASCII.GetString(received_buf) + "\r\n");  //将整个数组解码为ASCII数组
-                        string weigh = Encoding.ASCII.GetString(received_buf);
-                        textBox6.Text = weigh.Substring(weigh.IndexOf("=") + 1).TrimStart('0');
+						textBox_receive.AppendText(str + "\r\n");
 
-                    }
-                    textBox_receive.AppendText(sb.ToString());
-                    label7.Text = "Rx:" + receive_count.ToString() + "Bytes";
-                }
-                   )
-                );
+						// 👉 尝试提取重量
+						if (str.Contains("="))
+						{
+							string weigh = str.Substring(str.IndexOf("=") + 1);
+							textBox6.Text = weigh.TrimStart('0').Trim();
+						}
+					}
 
-            }
+					label7.Text = "Rx:" + receive_count + " Bytes";
+				}));
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message);
+			}
+		}
 
-            catch (Exception ex)
-            {
-                //响铃并显示异常给用户
-                System.Media.SystemSounds.Beep.Play();
-                MessageBox.Show(ex.Message);
-
-            }
-        }
-
-        private void radioButton1_CheckedChanged(object sender, EventArgs e)
+		private void radioButton1_CheckedChanged(object sender, EventArgs e)
         {
 
         }

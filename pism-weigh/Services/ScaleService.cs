@@ -1,288 +1,176 @@
 using System;
 using System.IO.Ports;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 
 namespace pism_weigh.Services
 {
-    /// <summary>
-    /// 地磅仪表串口服务
-    /// </summary>
-    public class ScaleService : IDisposable
-    {
-        private SerialPort _serialPort;
-        private bool _isConnected;
-        private string _currentPort;
-        private int _baudRate;
-        
-        // 重量数据回调
-        public event Action<decimal> WeightReceived;
-        
-        // 连接状态变化回调
-        public event Action<bool> ConnectionStateChanged;
-        
-        // 错误信息回调
-        public event Action<string> ErrorOccurred;
-        
-        /// <summary>
-        /// 当前重量值（吨）
-        /// </summary>
-        public decimal CurrentWeight { get; private set; }
-        
-        /// <summary>
-        /// 是否已连接
-        /// </summary>
-        public bool IsConnected => _isConnected;
-        
-        /// <summary>
-        /// 可用的串口号列表
-        /// </summary>
-        public static string[] GetAvailablePorts()
-        {
-            return SerialPort.GetPortNames();
-        }
-        
-        /// <summary>
-        /// 连接串口
-        /// </summary>
-        public bool Connect(string portName, int baudRate = 9600, int dataBits = 8, 
-                           Parity parity = Parity.None, StopBits stopBits = StopBits.One)
-        {
-            try
-            {
-                if (_isConnected)
-                {
-                    Disconnect();
-                }
-                
-                _serialPort = new SerialPort(portName, baudRate, parity, dataBits, stopBits)
-                {
-                    ReadTimeout = 1000,
-                    WriteTimeout = 1000,
-                    DtrEnable = true,
-                    RtsEnable = true
-                };
-                
-                _serialPort.DataReceived += SerialPort_DataReceived;
-                _serialPort.Open();
-                
-                _currentPort = portName;
-                _baudRate = baudRate;
-                _isConnected = true;
-                
-                ConnectionStateChanged?.Invoke(true);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                ErrorOccurred?.Invoke("连接串口失败：" + ex.Message);
-                _isConnected = false;
-                return false;
-            }
-        }
-        
-        /// <summary>
-        /// 断开串口连接
-        /// </summary>
-        public void Disconnect()
-        {
-            try
-            {
-                if (_serialPort != null)
-                {
-                    if (_serialPort.IsOpen)
-                    {
-                        _serialPort.Close();
-                    }
-                    _serialPort.DataReceived -= SerialPort_DataReceived;
-                    _serialPort.Dispose();
-                    _serialPort = null;
-                }
-                
-                _isConnected = false;
-                ConnectionStateChanged?.Invoke(false);
-            }
-            catch (Exception ex)
-            {
-                ErrorOccurred?.Invoke("断开串口失败：" + ex.Message);
-            }
-        }
-        
-        /// <summary>
-        /// 串口数据接收处理
-        /// </summary>
-        private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
-        {
-            try
-            {
-                Thread.Sleep(100); // 等待数据接收完整
-                
-                if (!_serialPort.IsOpen) return;
-                
-                int bytesToRead = _serialPort.BytesToRead;
-                if (bytesToRead == 0) return;
-                
-                byte[] buffer = new byte[bytesToRead];
-                _serialPort.Read(buffer, 0, bytesToRead);
-                
-                // 解析重量数据
-                string weightStr = ParseWeightData(buffer);
-                if (!string.IsNullOrEmpty(weightStr) && decimal.TryParse(weightStr, out decimal weight))
-                {
-                    CurrentWeight = weight;
-                    WeightReceived?.Invoke(weight);
-                }
-            }
-            catch (Exception ex)
-            {
-                ErrorOccurred?.Invoke("读取串口数据失败：" + ex.Message);
-            }
-        }
-        
-        /// <summary>
-        /// 解析重量数据
-        /// 支持多种地磅仪表协议格式
-        /// </summary>
-        private string ParseWeightData(byte[] data)
-        {
-            try
-            {
-                // 方式 1: ASCII 格式，如 "GS,+   12.345kg" 或 "=12.345"
-                string asciiData = Encoding.ASCII.GetString(data).Trim();
-                
-                // 查找等号后的数字
-                if (asciiData.Contains("="))
-                {
-                    int eqIndex = asciiData.IndexOf('=');
-                    string weightPart = asciiData.Substring(eqIndex + 1).Trim();
-                    return ExtractNumber(weightPart);
-                }
-                
-                // 查找 GS,前缀的格式
-                if (asciiData.ToUpper().Contains("GS,"))
-                {
-                    int gsIndex = asciiData.ToUpper().IndexOf("GS,");
-                    string weightPart = asciiData.Substring(gsIndex + 3).Trim();
-                    return ExtractNumber(weightPart);
-                }
-                
-                // 方式 2: 直接数字格式
-                string numberStr = ExtractNumber(asciiData);
-                if (!string.IsNullOrEmpty(numberStr))
-                {
-                    return numberStr;
-                }
-                
-                // 方式 3: 带 STX/ETX 的格式 (0x02...0x03)
-                if (data.Length > 2 && data[0] == 0x02)
-                {
-                    int etxIndex = Array.IndexOf(data, (byte)0x03);
-                    if (etxIndex > 1)
-                    {
-                        string content = Encoding.ASCII.GetString(data, 1, etxIndex - 1);
-                        return ExtractNumber(content);
-                    }
-                }
-                
-                return null;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-        
-        /// <summary>
-        /// 从字符串中提取数字
-        /// </summary>
-        private string ExtractNumber(string input)
-        {
-            if (string.IsNullOrEmpty(input)) return null;
-            
-            StringBuilder sb = new StringBuilder();
-            bool hasDecimalPoint = false;
-            
-            foreach (char c in input)
-            {
-                if (char.IsDigit(c))
-                {
-                    sb.Append(c);
-                }
-                else if (c == '.' || c == ',')
-                {
-                    if (!hasDecimalPoint)
-                    {
-                        sb.Append('.');
-                        hasDecimalPoint = true;
-                    }
-                }
-                else if (c == '-' && sb.Length == 0)
-                {
-                    sb.Append(c);
-                }
-            }
-            
-            return sb.Length > 0 ? sb.ToString() : null;
-        }
-        
-        /// <summary>
-        /// 发送指令到仪表
-        /// </summary>
-        public bool SendCommand(string command)
-        {
-            try
-            {
-                if (!_isConnected || !_serialPort.IsOpen)
-                {
-                    return false;
-                }
-                
-                _serialPort.Write(command);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                ErrorOccurred?.Invoke("发送指令失败：" + ex.Message);
-                return false;
-            }
-        }
-        
-        /// <summary>
-        /// 获取稳定重量（等待重量稳定后返回）
-        /// </summary>
-        public async Task<decimal> GetStableWeightAsync(int timeoutSeconds = 10, decimal stabilityThreshold = 0.01m)
-        {
-            DateTime startTime = DateTime.Now;
-            decimal lastWeight = CurrentWeight;
-            int stableCount = 0;
-            const int requiredStableCount = 5;
-            
-            while ((DateTime.Now - startTime).TotalSeconds < timeoutSeconds)
-            {
-                await Task.Delay(200);
-                
-                if (Math.Abs(CurrentWeight - lastWeight) < stabilityThreshold)
-                {
-                    stableCount++;
-                    if (stableCount >= requiredStableCount)
-                    {
-                        return CurrentWeight;
-                    }
-                }
-                else
-                {
-                    stableCount = 0;
-                    lastWeight = CurrentWeight;
-                }
-            }
-            
-            throw new TimeoutException("等待重量稳定超时");
-        }
-        
-        public void Dispose()
-        {
-            Disconnect();
-        }
-    }
+	/// <summary>
+	/// 地磅称重服务
+	/// </summary>
+	public class ScaleService : IDisposable
+	{
+		private SerialPort _serialPort;
+		private readonly object _lock = new object();
+		private bool _isDisposed = false;
+		private Dispatcher _uiDispatcher;
+		private Timer _stabilityTimer;
+		private double _lastWeight = 0.0;
+		private int _stableCount = 0;
+		private const int RequiredStableReads = 3; // 连续几次读数一致视为稳定
+		public event Action<double> WeightReceived;
+		public event Action<string> ErrorOccurred;
+		public string PortName { get; set; } = "COM1";
+		public int BaudRate { get; set; } = 9600;
+		public Parity Parity { get; set; } = Parity.None;
+		public int DataBits { get; set; } = 8;
+		public StopBits StopBits { get; set; } = StopBits.One;
+
+		public bool IsConnected => _serialPort != null && _serialPort.IsOpen;
+		public double CurrentWeight { get; private set; } = 0.0;
+		public ScaleService()
+		{
+			_uiDispatcher = Dispatcher.CurrentDispatcher;
+		}
+		public void Connect()
+		{
+			if (_isDisposed) throw new ObjectDisposedException(nameof(ScaleService));
+			lock (_lock)
+			{
+				if (_serialPort != null && _serialPort.IsOpen)
+				{
+					Disconnect();
+				}
+				_serialPort = new SerialPort
+				{
+					PortName = PortName,
+					BaudRate = BaudRate,
+					Parity = Parity,
+					DataBits = DataBits,
+					StopBits = StopBits,
+					ReadTimeout = 1000,
+					WriteTimeout = 1000
+				};
+				_serialPort.DataReceived += SerialPort_DataReceived;
+				_serialPort.ErrorReceived += SerialPort_ErrorReceived;
+				try
+				{
+					_serialPort.Open();
+					StartStabilityCheck();
+				}
+				catch (Exception ex)
+				{
+					RaiseError("打开串口失败：" + ex.Message);
+					throw;
+				}
+			}
+		}
+		public void Disconnect()
+		{
+			lock (_lock)
+			{
+				if (_stabilityTimer != null)
+				{
+					_stabilityTimer.Dispose();
+					_stabilityTimer = null;
+				}
+				if (_serialPort != null)
+				{
+					try
+					{
+						if (_serialPort.IsOpen)
+						{
+							_serialPort.Close();
+							_serialPort.Dispose();
+						}
+					}
+					catch { }
+					finally
+					{
+						_serialPort = null;
+					}
+				}
+			}
+		}
+		private void SerialPort_ErrorReceived(object sender, SerialErrorReceivedEventArgs e)
+		{
+			RaiseError("串口通信错误：" + e.EventType);
+		}
+		private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
+		{
+			try
+			{
+				int len = _serialPort.BytesToRead;
+				byte[] buffer = new byte[len];
+
+				_serialPort.Read(buffer, 0, len);
+
+				// 👉 打印原始数据（调试用）
+				string hex = BitConverter.ToString(buffer);
+				Console.WriteLine("收到数据: " + hex);
+
+				// 👉 如果是ASCII协议（部分地磅）
+				string str = Encoding.ASCII.GetString(buffer);
+				Console.WriteLine("字符串: " + str);
+
+				double weight = ParseWeight(str);
+				UpdateWeight(weight);
+			}
+			catch (Exception ex)
+			{
+				RaiseError("读取数据异常：" + ex.Message);
+			}
+		}
+		private double ParseWeight(string data)
+		{
+			if (string.IsNullOrWhiteSpace(data)) return 0.0;
+			// 去除非数字字符，保留负号和小数点
+			string pattern = @"[-+]?\d*\.?\d+";
+			Match match = Regex.Match(data, pattern);
+			if (match.Success)
+			{
+				if (double.TryParse(match.Value, out double result))
+				{
+					return result;
+				}
+			}
+			return 0.0;
+		}
+		private void UpdateWeight(double weight)
+		{
+			CurrentWeight = weight;
+
+			if (WeightReceived != null)
+			{
+				_uiDispatcher.Invoke(() => WeightReceived(weight));
+			}
+		}
+		private void StartStabilityCheck()
+		{
+			_stabilityTimer = new Timer(CheckStability, null, 0, 500);
+		}
+		private void CheckStability(object state)
+		{
+			// 此处可扩展稳定性判断逻辑
+			// 目前简化为直接推送最新数据
+		}
+		private void RaiseError(string message)
+		{
+			if (ErrorOccurred != null)
+			{
+				_uiDispatcher.Invoke(() => ErrorOccurred(message));
+			}
+		}
+		public void Dispose()
+		{
+			if (!_isDisposed)
+			{
+				Disconnect();
+				_isDisposed = true;
+			}
+		}
+	}
 }
