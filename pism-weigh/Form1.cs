@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Globalization;
 using System.Data;
 using System.Drawing;
 using System.IO.Ports;
@@ -21,6 +22,13 @@ namespace pism_weigh
         string[] str = new string[50];
         int i = 0;
         private ScaleService scaleService = new ScaleService();
+        private const int StableReadThreshold = 3;
+        private const double StableDeltaThreshold = 0.005;
+        private const string WeightUnit = " t";
+        private double? _lastCurrentWeight;
+        private double? _stableWeight;
+        private int _stableReadCount;
+        private int _printCount;
 		public Form1()
         {
             InitializeComponent();
@@ -218,15 +226,17 @@ namespace pism_weigh
 					else
 					{
 						// 👉 ASCII解析
-						string str = Encoding.ASCII.GetString(buffer);
+						string asciiFrame = Encoding.ASCII.GetString(buffer);
+						textBox_receive.AppendText(asciiFrame + "\r\n");
 
-						textBox_receive.AppendText(str + "\r\n");
-
-						// 👉 尝试提取重量
-						if (str.Contains("="))
+						if (ScaleService.TryParseWeightFrame(asciiFrame, out double currentWeight))
 						{
-							string weigh = str.Substring(str.IndexOf("=") + 1);
-							textBox6.Text = weigh.TrimStart('0').Trim();
+							textBoxCurrentWeight.Text = FormatWeight(currentWeight);
+							UpdateStableWeight(currentWeight);
+						}
+						else
+						{
+							textBoxCurrentWeight.Text = "--";
 						}
 					}
 
@@ -238,6 +248,54 @@ namespace pism_weigh
 				MessageBox.Show(ex.Message);
 			}
 		}
+
+        private void UpdateStableWeight(double currentWeight)
+        {
+            if (!_lastCurrentWeight.HasValue)
+            {
+                _stableReadCount = 1;
+            }
+            else if (Math.Abs(currentWeight - _lastCurrentWeight.Value) <= StableDeltaThreshold)
+            {
+                _stableReadCount++;
+            }
+            else
+            {
+                _stableReadCount = 1;
+            }
+
+            _lastCurrentWeight = currentWeight;
+            if (_stableReadCount >= StableReadThreshold)
+            {
+                _stableWeight = currentWeight;
+                textBox6.Text = FormatWeight(currentWeight);
+            }
+        }
+
+        private static string FormatWeight(double weight)
+        {
+            return $"{weight.ToString("F3", CultureInfo.InvariantCulture)}{WeightUnit}";
+        }
+
+        private bool TryParseWeightText(string text, string fieldName, out double weight)
+        {
+            weight = 0;
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                MessageBox.Show($"{fieldName}为空");
+                return false;
+            }
+
+            string numericText = text.Replace(WeightUnit, string.Empty).Trim();
+            if (double.TryParse(numericText, NumberStyles.Float | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out weight)
+                || double.TryParse(numericText, NumberStyles.Float | NumberStyles.AllowLeadingSign, CultureInfo.CurrentCulture, out weight))
+            {
+                return true;
+            }
+
+            MessageBox.Show($"{fieldName}格式错误：{text}");
+            return false;
+        }
 
 		private void radioButton1_CheckedChanged(object sender, EventArgs e)
         {
@@ -383,12 +441,20 @@ namespace pism_weigh
             else
             {
                 //是否空车重于重车
-                if (double.Parse(textBox1.Text) < double.Parse(textBox2.Text))
+                if (!TryParseWeightText(textBox1.Text, "重车重量", out double roughWeight)
+                    || !TryParseWeightText(textBox2.Text, "空车重量", out double tareWeight))
                 {
-
+                    return;
                 }
-                double netWeight = (double.Parse(textBox1.Text) - double.Parse(textBox2.Text));
-                textBox3.Text = Convert.ToString(netWeight);
+
+                if (roughWeight < tareWeight)
+                {
+                    MessageBox.Show("重车重量不能小于空车重量");
+                    return;
+                }
+
+                double netWeight = roughWeight - tareWeight;
+                textBox3.Text = FormatWeight(netWeight);
             }
 
         }
@@ -418,13 +484,28 @@ namespace pism_weigh
                 cargoComeOut = true;
             }
 
-            weightinfo.cargoPlate = textBox1.Text;
-            weightinfo.roughWeight = double.Parse(textBox1.Text);
-            weightinfo.tare = double.Parse(textBox1.Text);
-            weightinfo.netWeight = double.Parse(textBox1.Text);
+            string cargoPlate = $"{comboBox7.Text}{textBox5.Text?.Trim()}";
+            if (string.IsNullOrWhiteSpace(comboBox7.Text) || string.IsNullOrWhiteSpace(textBox5.Text))
+            {
+                MessageBox.Show("车牌为空");
+                return;
+            }
+
+            if (!TryParseWeightText(textBox1.Text, "重车重量", out double roughWeight)
+                || !TryParseWeightText(textBox2.Text, "空车重量", out double tareWeight)
+                || !TryParseWeightText(textBox3.Text, "净重", out double netWeight))
+            {
+                return;
+            }
+
+            weightinfo.cargoPlate = cargoPlate;
+            weightinfo.roughWeight = roughWeight;
+            weightinfo.tare = tareWeight;
+            weightinfo.netWeight = netWeight;
             weightinfo.psimType = textBox1.Text;
             weightinfo.cargoComeOut = cargoComeOut;
-            weightinfo.printCount = int.Parse(textBox1.Text);
+            _printCount++;
+            weightinfo.printCount = _printCount;
             weightinfo.printUser = user.userName;
             weightinfo.createDate = new DateTime();
             //开始上传数据至数据库

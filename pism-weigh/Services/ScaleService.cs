@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO.Ports;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -13,6 +14,7 @@ namespace pism_weigh.Services
 	/// </summary>
 	public class ScaleService : IDisposable
 	{
+		private static readonly Regex WeightRegex = new Regex(@"[-+]?\d*\.?\d+", RegexOptions.Compiled);
 		private SerialPort _serialPort;
 		private readonly object _lock = new object();
 		private bool _isDisposed = false;
@@ -35,6 +37,25 @@ namespace pism_weigh.Services
 		{
 			_uiDispatcher = Dispatcher.CurrentDispatcher;
 		}
+
+		public static bool TryParseWeightFrame(string frame, out double weight)
+		{
+			weight = 0.0;
+			if (string.IsNullOrWhiteSpace(frame))
+			{
+				return false;
+			}
+
+			Match match = WeightRegex.Match(frame);
+			if (!match.Success)
+			{
+				return false;
+			}
+
+			return double.TryParse(match.Value, NumberStyles.Float | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out weight)
+				|| double.TryParse(match.Value, NumberStyles.Float | NumberStyles.AllowLeadingSign, CultureInfo.CurrentCulture, out weight);
+		}
+
 		public void Connect()
 		{
 			if (_isDisposed) throw new ObjectDisposedException(nameof(ScaleService));
@@ -108,37 +129,18 @@ namespace pism_weigh.Services
 
 				_serialPort.Read(buffer, 0, len);
 
-				// 👉 打印原始数据（调试用）
-				string hex = BitConverter.ToString(buffer);
-				Console.WriteLine("收到数据: " + hex);
-
-				// 👉 如果是ASCII协议（部分地磅）
 				string str = Encoding.ASCII.GetString(buffer);
-				Console.WriteLine("字符串: " + str);
-
-				double weight = ParseWeight(str);
-				UpdateWeight(weight);
+				if (TryParseWeightFrame(str, out double weight))
+				{
+					UpdateWeight(weight);
+				}
 			}
 			catch (Exception ex)
 			{
 				RaiseError("读取数据异常：" + ex.Message);
 			}
 		}
-		private double ParseWeight(string data)
-		{
-			if (string.IsNullOrWhiteSpace(data)) return 0.0;
-			// 去除非数字字符，保留负号和小数点
-			string pattern = @"[-+]?\d*\.?\d+";
-			Match match = Regex.Match(data, pattern);
-			if (match.Success)
-			{
-				if (double.TryParse(match.Value, out double result))
-				{
-					return result;
-				}
-			}
-			return 0.0;
-		}
+
 		private void UpdateWeight(double weight)
 		{
 			CurrentWeight = weight;
