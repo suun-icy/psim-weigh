@@ -1,4 +1,6 @@
 ﻿using Newtonsoft.Json;
+using pism_weigh.Database;
+using pism_weigh.Models;
 using pism_weigh.Services;
 using System;
 using System.Collections.Generic;
@@ -15,12 +17,27 @@ namespace pism_weigh
 {
     public partial class Form1 : Form
     {
+        private enum WeighingMode
+        {
+            GrossFirst,
+            TareFirst
+        }
+
+        private enum CapturedWeightType
+        {
+            Gross,
+            Tare
+        }
         
         private long receive_count = 0;
         private StringBuilder sb = new StringBuilder();
         string[] str = new string[50];
         int i = 0;
         private ScaleService scaleService = new ScaleService();
+        private decimal? lastCapturedWeight = null;
+        private CapturedWeightType? lastCapturedWeightType = null;
+        private const string ModeTagGrossFirst = "[MODE:GF]";
+        private const string ModeTagTareFirst = "[MODE:TF]";
 		public Form1()
         {
             InitializeComponent();
@@ -68,6 +85,9 @@ namespace pism_weigh
             comboBox7.Items.Add("港");
             comboBox7.Items.Add("澳");
             comboBox7.Items.Add("台");
+            comboBox8.Items.Add("先毛后皮");
+            comboBox8.Items.Add("先皮后毛");
+            comboBox8.SelectedIndex = 0;
         }
 
         private void label1_Click(object sender, EventArgs e)
@@ -190,6 +210,12 @@ namespace pism_weigh
             {
                 //填充数据
                 textBox1.Text = textBox6.Text;
+                decimal captured;
+                if (decimal.TryParse(textBox1.Text, out captured))
+                {
+                    lastCapturedWeight = captured;
+                    lastCapturedWeightType = CapturedWeightType.Gross;
+                }
             }
 
             
@@ -288,6 +314,12 @@ namespace pism_weigh
             else {
                 //填充数据
                 textBox2.Text = textBox6.Text;
+                decimal captured;
+                if (decimal.TryParse(textBox2.Text, out captured))
+                {
+                    lastCapturedWeight = captured;
+                    lastCapturedWeightType = CapturedWeightType.Tare;
+                }
             }
         }
 
@@ -363,34 +395,123 @@ namespace pism_weigh
 
         private void button5_Click(object sender, EventArgs e)
         {
-            //车牌判空
-            if (textBox5.Text == null || comboBox7.SelectedIndex == -1)
+            if (string.IsNullOrWhiteSpace(textBox5.Text) || comboBox7.SelectedIndex == -1)
             {
-                //响铃并显示异常给用户
                 System.Media.SystemSounds.Beep.Play();
                 MessageBox.Show("车牌为空");
                 return;
             }
-            
 
-            //重量是否为空
-            if (textBox1.Text == ""|| textBox2.Text == "")
+            if (lastCapturedWeight == null || lastCapturedWeightType == null)
             {
-                MessageBox.Show("称重错误,请重试");
-                return ;
+                MessageBox.Show("请先点击“称取重车”或“称取空车”采集本次重量。");
+                return;
+            }
 
+            var currentWeight = lastCapturedWeight.Value;
+            var currentType = lastCapturedWeightType.Value;
+            var plate = comboBox7.Text + textBox5.Text.Trim().ToUpper();
+            var openRecord = DatabaseHelper.GetLatestOpenRecordByPlate(plate);
+            var selectedMode = GetSelectedMode();
+
+            if (openRecord == null)
+            {
+                if ((selectedMode == WeighingMode.GrossFirst && currentType != CapturedWeightType.Gross) ||
+                    (selectedMode == WeighingMode.TareFirst && currentType != CapturedWeightType.Tare))
+                {
+                    MessageBox.Show("当前称重模式与本次采集类型不一致，请先按模式进行首次称重。");
+                    return;
+                }
+
+                var record = new WeighRecord
+                {
+                    PlateNumber = plate,
+                    Province = comboBox7.Text,
+                    PlateCode = textBox5.Text.Trim().ToUpper(),
+                    GrossWeight = currentType == CapturedWeightType.Gross ? currentWeight : 0M,
+                    TareWeight = currentType == CapturedWeightType.Tare ? currentWeight : 0M,
+                    NetWeight = 0M,
+                    BusinessType = radioButton3.Checked ? BusinessType.PurchaseIn : BusinessType.SalesOut,
+                    Status = WeighStatus.FirstWeigh,
+                    FirstWeighTime = DateTime.Now,
+                    CompleteTime = DateTime.MinValue,
+                    Remark = BuildModeRemark(selectedMode),
+                    OperatorName = user.userName
+                };
+
+                if (!DatabaseHelper.SaveWeighRecord(record))
+                {
+                    MessageBox.Show("首次称重保存失败。");
+                    return;
+                }
+
+                MessageBox.Show("首次称重已保存，请进行第二次称重。");
+                textBox3.Text = "0";
+                return;
+            }
+
+            var mode = GetModeFromRecord(openRecord, selectedMode);
+            if ((mode == WeighingMode.GrossFirst && currentType != CapturedWeightType.Tare) ||
+                (mode == WeighingMode.TareFirst && currentType != CapturedWeightType.Gross))
+            {
+                MessageBox.Show("第二次称重类型与未完成记录不匹配，已阻止保存。");
+                return;
+            }
+
+            decimal grossWeight = openRecord.GrossWeight;
+            decimal tareWeight = openRecord.TareWeight;
+            if (currentType == CapturedWeightType.Gross)
+            {
+                grossWeight = currentWeight;
             }
             else
             {
-                //是否空车重于重车
-                if (double.Parse(textBox1.Text) < double.Parse(textBox2.Text))
-                {
-
-                }
-                double netWeight = (double.Parse(textBox1.Text) - double.Parse(textBox2.Text));
-                textBox3.Text = Convert.ToString(netWeight);
+                tareWeight = currentWeight;
             }
 
+            if (mode == WeighingMode.GrossFirst && tareWeight > grossWeight)
+            {
+                var confirm = MessageBox.Show("第二次重量大于第一次，和“先毛后皮”模式不匹配，是否继续？", "异常确认", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (confirm != DialogResult.Yes)
+                {
+                    return;
+                }
+            }
+
+            if (mode == WeighingMode.TareFirst && grossWeight < tareWeight)
+            {
+                var confirm = MessageBox.Show("第二次重量小于第一次，和“先皮后毛”模式不匹配，是否继续？", "异常确认", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (confirm != DialogResult.Yes)
+                {
+                    return;
+                }
+            }
+
+            var netWeightValue = grossWeight - tareWeight;
+            if (netWeightValue < 0)
+            {
+                MessageBox.Show("净重不得为负，已阻止保存。");
+                return;
+            }
+
+            openRecord.GrossWeight = grossWeight;
+            openRecord.TareWeight = tareWeight;
+            openRecord.NetWeight = netWeightValue;
+            openRecord.Status = WeighStatus.Completed;
+            openRecord.SecondWeighTime = DateTime.Now;
+            openRecord.CompleteTime = DateTime.Now;
+            openRecord.UpdateTime = DateTime.Now;
+
+            if (!DatabaseHelper.SaveWeighRecord(openRecord))
+            {
+                MessageBox.Show("第二次称重保存失败。");
+                return;
+            }
+
+            textBox1.Text = grossWeight.ToString("0.###");
+            textBox2.Text = tareWeight.ToString("0.###");
+            textBox3.Text = netWeightValue.ToString("0.###");
+            MessageBox.Show("称重完成并已保存。");
         }
 
         private void textBox_receive_TextChanged(object sender, EventArgs e)
@@ -448,6 +569,34 @@ namespace pism_weigh
         private void radioButton4_CheckedChanged(object sender, EventArgs e)
         {
 
+        }
+
+        private WeighingMode GetSelectedMode()
+        {
+            return comboBox8.SelectedIndex == 1 ? WeighingMode.TareFirst : WeighingMode.GrossFirst;
+        }
+
+        private string BuildModeRemark(WeighingMode mode)
+        {
+            return mode == WeighingMode.TareFirst ? ModeTagTareFirst : ModeTagGrossFirst;
+        }
+
+        private WeighingMode GetModeFromRecord(WeighRecord record, WeighingMode fallback)
+        {
+            if (!string.IsNullOrEmpty(record.Remark))
+            {
+                if (record.Remark.Contains(ModeTagTareFirst))
+                {
+                    return WeighingMode.TareFirst;
+                }
+
+                if (record.Remark.Contains(ModeTagGrossFirst))
+                {
+                    return WeighingMode.GrossFirst;
+                }
+            }
+
+            return fallback;
         }
     }
 }

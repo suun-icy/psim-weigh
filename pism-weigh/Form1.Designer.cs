@@ -52,6 +52,8 @@ namespace pism_weigh
             this.textBox_receive = new System.Windows.Forms.TextBox();
             this.panel3 = new System.Windows.Forms.Panel();
             this.label15 = new System.Windows.Forms.Label();
+            this.label16 = new System.Windows.Forms.Label();
+            this.comboBox8 = new System.Windows.Forms.ComboBox();
             this.radioButton4 = new System.Windows.Forms.RadioButton();
             this.radioButton3 = new System.Windows.Forms.RadioButton();
             this.textBox5 = new System.Windows.Forms.TextBox();
@@ -297,6 +299,8 @@ namespace pism_weigh
             // panel3
             // 
             this.panel3.Controls.Add(this.label15);
+            this.panel3.Controls.Add(this.label16);
+            this.panel3.Controls.Add(this.comboBox8);
             this.panel3.Controls.Add(this.radioButton4);
             this.panel3.Controls.Add(this.radioButton3);
             this.panel3.Controls.Add(this.textBox5);
@@ -325,6 +329,24 @@ namespace pism_weigh
             this.label15.Size = new System.Drawing.Size(29, 12);
             this.label15.TabIndex = 17;
             this.label15.Text = "进销";
+            // 
+            // label16
+            // 
+            this.label16.AutoSize = true;
+            this.label16.Location = new System.Drawing.Point(264, 143);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(53, 12);
+            this.label16.TabIndex = 19;
+            this.label16.Text = "称重模式";
+            // 
+            // comboBox8
+            // 
+            this.comboBox8.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox8.FormattingEnabled = true;
+            this.comboBox8.Location = new System.Drawing.Point(323, 139);
+            this.comboBox8.Name = "comboBox8";
+            this.comboBox8.Size = new System.Drawing.Size(109, 20);
+            this.comboBox8.TabIndex = 18;
             // 
             // radioButton4
             // 
@@ -685,6 +707,7 @@ namespace pism_weigh
         private System.Windows.Forms.Label label15;
         private System.Windows.Forms.RadioButton radioButton4;
         private System.Windows.Forms.RadioButton radioButton3;
+        private System.Windows.Forms.Label label16;
+        private System.Windows.Forms.ComboBox comboBox8;
     }
 }
-

@@ -324,6 +324,65 @@ namespace pism_weigh.Database
         }
 
         /// <summary>
+        /// 根据车牌号获取最新未完成称重记录
+        /// 条件：状态为 FirstWeigh / SecondWeigh，且未完成
+        /// </summary>
+        public static WeighRecord GetLatestOpenRecordByPlate(string plateNumber)
+        {
+            var sql = @"
+                SELECT * FROM WeighRecords
+                WHERE PlateNumber = @PlateNumber
+                  AND Status IN (@FirstStatus, @SecondStatus)
+                  AND (CompleteTime IS NULL OR CompleteTime = '' OR CompleteTime = @MinDate)
+                ORDER BY CreateTime DESC
+                LIMIT 1";
+            var dt = ExecuteQuery(sql,
+                new SQLiteParameter("@PlateNumber", plateNumber),
+                new SQLiteParameter("@FirstStatus", (int)WeighStatus.FirstWeigh),
+                new SQLiteParameter("@SecondStatus", (int)WeighStatus.SecondWeigh),
+                new SQLiteParameter("@MinDate", DateTime.MinValue));
+
+            if (dt.Rows.Count == 0)
+            {
+                return null;
+            }
+
+            var row = dt.Rows[0];
+            return new WeighRecord
+            {
+                Id = row["Id"].ToString(),
+                PlateNumber = row["PlateNumber"].ToString(),
+                Province = row["Province"].ToString(),
+                PlateCode = row["PlateCode"].ToString(),
+                GrossWeight = Convert.ToDecimal(row["GrossWeight"]),
+                TareWeight = Convert.ToDecimal(row["TareWeight"]),
+                NetWeight = Convert.ToDecimal(row["NetWeight"]),
+                CargoType = row["CargoType"].ToString(),
+                Sender = row["Sender"].ToString(),
+                Receiver = row["Receiver"].ToString(),
+                DriverName = row["DriverName"].ToString(),
+                DriverPhone = row["DriverPhone"].ToString(),
+                BusinessType = (BusinessType)Convert.ToInt32(row["BusinessType"]),
+                Status = (WeighStatus)Convert.ToInt32(row["Status"]),
+                FirstWeighTime = row["FirstWeighTime"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(row["FirstWeighTime"]),
+                SecondWeighTime = row["SecondWeighTime"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(row["SecondWeighTime"]),
+                CompleteTime = row["CompleteTime"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(row["CompleteTime"]),
+                OperatorId = row["OperatorId"].ToString(),
+                OperatorName = row["OperatorName"].ToString(),
+                Remark = row["Remark"] == DBNull.Value ? null : row["Remark"].ToString(),
+                PrintCount = Convert.ToInt32(row["PrintCount"]),
+                IsUploaded = Convert.ToInt32(row["IsUploaded"]) == 1,
+                CreateTime = Convert.ToDateTime(row["CreateTime"]),
+                UpdateTime = Convert.ToDateTime(row["UpdateTime"]),
+                Category = row["Category"] == DBNull.Value ? RecordCategory.Valid : (RecordCategory)Convert.ToInt32(row["Category"]),
+                ModifyHistory = row["ModifyHistory"] == DBNull.Value ? null : row["ModifyHistory"].ToString(),
+                ReviewerId = row["ReviewerId"] == DBNull.Value ? null : row["ReviewerId"].ToString(),
+                ReviewerName = row["ReviewerName"] == DBNull.Value ? null : row["ReviewerName"].ToString(),
+                ReviewTime = row["ReviewTime"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(row["ReviewTime"])
+            };
+        }
+
+        /// <summary>
         /// 根据类别查询称重记录
         /// </summary>
         public static List<WeighRecord> GetWeighRecordsByCategory(RecordCategory category)

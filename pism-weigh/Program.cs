@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using pism_weigh.Database;
 
 namespace pism_weigh
 {
@@ -15,6 +16,7 @@ namespace pism_weigh
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+            DatabaseHelper.Initialize();
             Application.Run(new Form1());
         }
     }
