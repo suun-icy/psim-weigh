@@ -24,6 +24,7 @@ bower_components/
 Thumbs.db
 ehthumbs.db
 Icon?
+<<<<<<< wpf地磅称重软件功能建议-9275f
 desktop.ini
 
 # Visual Studio
@@ -41,3 +42,7 @@ _ReSharper*/
 *.[Rr]e[Ss]harper
 *.DotSettings.user
 ```
+=======
+```
+/.vs/pism-weigh/FileContentIndex
+>>>>>>> master
