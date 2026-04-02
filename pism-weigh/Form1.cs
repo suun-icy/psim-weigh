@@ -18,6 +18,17 @@ namespace pism_weigh
 {
     public partial class Form1 : Form
     {
+        private enum WeighingMode
+        {
+            GrossFirst,
+            TareFirst
+        }
+
+        private enum CapturedWeightType
+        {
+            Gross,
+            Tare
+        }
         
         private long receive_count = 0;
         private StringBuilder sb = new StringBuilder();
@@ -78,8 +89,9 @@ namespace pism_weigh
             comboBox7.Items.Add("港");
             comboBox7.Items.Add("澳");
             comboBox7.Items.Add("台");
-
-            LoadPlateHistoryFromDatabase();
+            comboBox8.Items.Add("先毛后皮");
+            comboBox8.Items.Add("先皮后毛");
+            comboBox8.SelectedIndex = 0;
         }
 
         private void label1_Click(object sender, EventArgs e)
@@ -202,6 +214,12 @@ namespace pism_weigh
             {
                 //填充数据
                 textBox1.Text = textBox6.Text;
+                decimal captured;
+                if (decimal.TryParse(textBox1.Text, out captured))
+                {
+                    lastCapturedWeight = captured;
+                    lastCapturedWeightType = CapturedWeightType.Gross;
+                }
             }
 
             
@@ -360,6 +378,12 @@ namespace pism_weigh
             else {
                 //填充数据
                 textBox2.Text = textBox6.Text;
+                decimal captured;
+                if (decimal.TryParse(textBox2.Text, out captured))
+                {
+                    lastCapturedWeight = captured;
+                    lastCapturedWeightType = CapturedWeightType.Tare;
+                }
             }
         }
 
@@ -435,42 +459,123 @@ namespace pism_weigh
 
         private void button5_Click(object sender, EventArgs e)
         {
-            //车牌判空
-            if (textBox5.Text == null || comboBox7.SelectedIndex == -1)
+            if (string.IsNullOrWhiteSpace(textBox5.Text) || comboBox7.SelectedIndex == -1)
             {
-                //响铃并显示异常给用户
                 System.Media.SystemSounds.Beep.Play();
                 MessageBox.Show("车牌为空");
                 return;
             }
-            
 
-            //重量是否为空
-            if (textBox1.Text == ""|| textBox2.Text == "")
+            if (lastCapturedWeight == null || lastCapturedWeightType == null)
             {
-                MessageBox.Show("称重错误,请重试");
-                return ;
+                MessageBox.Show("请先点击“称取重车”或“称取空车”采集本次重量。");
+                return;
+            }
 
+            var currentWeight = lastCapturedWeight.Value;
+            var currentType = lastCapturedWeightType.Value;
+            var plate = comboBox7.Text + textBox5.Text.Trim().ToUpper();
+            var openRecord = DatabaseHelper.GetLatestOpenRecordByPlate(plate);
+            var selectedMode = GetSelectedMode();
+
+            if (openRecord == null)
+            {
+                if ((selectedMode == WeighingMode.GrossFirst && currentType != CapturedWeightType.Gross) ||
+                    (selectedMode == WeighingMode.TareFirst && currentType != CapturedWeightType.Tare))
+                {
+                    MessageBox.Show("当前称重模式与本次采集类型不一致，请先按模式进行首次称重。");
+                    return;
+                }
+
+                var record = new WeighRecord
+                {
+                    PlateNumber = plate,
+                    Province = comboBox7.Text,
+                    PlateCode = textBox5.Text.Trim().ToUpper(),
+                    GrossWeight = currentType == CapturedWeightType.Gross ? currentWeight : 0M,
+                    TareWeight = currentType == CapturedWeightType.Tare ? currentWeight : 0M,
+                    NetWeight = 0M,
+                    BusinessType = radioButton3.Checked ? BusinessType.PurchaseIn : BusinessType.SalesOut,
+                    Status = WeighStatus.FirstWeigh,
+                    FirstWeighTime = DateTime.Now,
+                    CompleteTime = DateTime.MinValue,
+                    Remark = BuildModeRemark(selectedMode),
+                    OperatorName = user.userName
+                };
+
+                if (!DatabaseHelper.SaveWeighRecord(record))
+                {
+                    MessageBox.Show("首次称重保存失败。");
+                    return;
+                }
+
+                MessageBox.Show("首次称重已保存，请进行第二次称重。");
+                textBox3.Text = "0";
+                return;
+            }
+
+            var mode = GetModeFromRecord(openRecord, selectedMode);
+            if ((mode == WeighingMode.GrossFirst && currentType != CapturedWeightType.Tare) ||
+                (mode == WeighingMode.TareFirst && currentType != CapturedWeightType.Gross))
+            {
+                MessageBox.Show("第二次称重类型与未完成记录不匹配，已阻止保存。");
+                return;
+            }
+
+            decimal grossWeight = openRecord.GrossWeight;
+            decimal tareWeight = openRecord.TareWeight;
+            if (currentType == CapturedWeightType.Gross)
+            {
+                grossWeight = currentWeight;
             }
             else
             {
-                //是否空车重于重车
-                if (!TryParseWeightText(textBox1.Text, "重车重量", out double roughWeight)
-                    || !TryParseWeightText(textBox2.Text, "空车重量", out double tareWeight))
-                {
-                    return;
-                }
-
-                if (roughWeight < tareWeight)
-                {
-                    MessageBox.Show("重车重量不能小于空车重量");
-                    return;
-                }
-
-                double netWeight = roughWeight - tareWeight;
-                textBox3.Text = FormatWeight(netWeight);
+                tareWeight = currentWeight;
             }
 
+            if (mode == WeighingMode.GrossFirst && tareWeight > grossWeight)
+            {
+                var confirm = MessageBox.Show("第二次重量大于第一次，和“先毛后皮”模式不匹配，是否继续？", "异常确认", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (confirm != DialogResult.Yes)
+                {
+                    return;
+                }
+            }
+
+            if (mode == WeighingMode.TareFirst && grossWeight < tareWeight)
+            {
+                var confirm = MessageBox.Show("第二次重量小于第一次，和“先皮后毛”模式不匹配，是否继续？", "异常确认", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (confirm != DialogResult.Yes)
+                {
+                    return;
+                }
+            }
+
+            var netWeightValue = grossWeight - tareWeight;
+            if (netWeightValue < 0)
+            {
+                MessageBox.Show("净重不得为负，已阻止保存。");
+                return;
+            }
+
+            openRecord.GrossWeight = grossWeight;
+            openRecord.TareWeight = tareWeight;
+            openRecord.NetWeight = netWeightValue;
+            openRecord.Status = WeighStatus.Completed;
+            openRecord.SecondWeighTime = DateTime.Now;
+            openRecord.CompleteTime = DateTime.Now;
+            openRecord.UpdateTime = DateTime.Now;
+
+            if (!DatabaseHelper.SaveWeighRecord(openRecord))
+            {
+                MessageBox.Show("第二次称重保存失败。");
+                return;
+            }
+
+            textBox1.Text = grossWeight.ToString("0.###");
+            textBox2.Text = tareWeight.ToString("0.###");
+            textBox3.Text = netWeightValue.ToString("0.###");
+            MessageBox.Show("称重完成并已保存。");
         }
 
         private void textBox_receive_TextChanged(object sender, EventArgs e)
@@ -546,154 +651,32 @@ namespace pism_weigh
 
         }
 
-        private void LoadPlateHistoryFromDatabase()
+        private WeighingMode GetSelectedMode()
         {
-            try
-            {
-                var allRecords = DatabaseHelper.GetAllWeighRecords();
-                plateHistoryCache = allRecords
-                    .Select(r => r.PlateNumber)
-                    .Where(p => !string.IsNullOrWhiteSpace(p))
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .ToList();
-
-                RefreshPlateHistoryDropdown(plateHistoryCache);
-            }
-            catch
-            {
-                plateHistoryCache = new List<string>();
-                RefreshPlateHistoryDropdown(plateHistoryCache);
-            }
+            return comboBox8.SelectedIndex == 1 ? WeighingMode.TareFirst : WeighingMode.GrossFirst;
         }
 
-        private void RefreshPlateHistoryDropdown(IEnumerable<string> plates)
+        private string BuildModeRemark(WeighingMode mode)
         {
-            isUpdatingPlateHistory = true;
-            var currentText = comboBoxPlateHistory.Text;
-
-            comboBoxPlateHistory.BeginUpdate();
-            comboBoxPlateHistory.Items.Clear();
-            foreach (var plate in plates)
-            {
-                comboBoxPlateHistory.Items.Add(plate);
-            }
-            comboBoxPlateHistory.EndUpdate();
-            comboBoxPlateHistory.Text = currentText;
-            comboBoxPlateHistory.SelectionStart = comboBoxPlateHistory.Text.Length;
-            isUpdatingPlateHistory = false;
+            return mode == WeighingMode.TareFirst ? ModeTagTareFirst : ModeTagGrossFirst;
         }
 
-        private void comboBoxPlateHistory_TextChanged(object sender, EventArgs e)
+        private WeighingMode GetModeFromRecord(WeighRecord record, WeighingMode fallback)
         {
-            if (isUpdatingPlateHistory)
+            if (!string.IsNullOrEmpty(record.Remark))
             {
-                return;
-            }
-
-            var keyword = comboBoxPlateHistory.Text.Trim();
-            if (string.IsNullOrWhiteSpace(keyword))
-            {
-                RefreshPlateHistoryDropdown(plateHistoryCache);
-                return;
-            }
-
-            try
-            {
-                var dynamicPlates = DatabaseHelper.GetWeighRecordsByPlate(keyword)
-                    .Select(r => r.PlateNumber)
-                    .Where(p => !string.IsNullOrWhiteSpace(p))
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .ToList();
-
-                RefreshPlateHistoryDropdown(dynamicPlates);
-                comboBoxPlateHistory.DroppedDown = true;
-                comboBoxPlateHistory.SelectionStart = comboBoxPlateHistory.Text.Length;
-            }
-            catch
-            {
-                var fallbackPlates = plateHistoryCache
-                    .Where(p => p.IndexOf(keyword, StringComparison.OrdinalIgnoreCase) >= 0)
-                    .ToList();
-                RefreshPlateHistoryDropdown(fallbackPlates);
-            }
-        }
-
-        private void comboBoxPlateHistory_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (isUpdatingPlateHistory)
-            {
-                return;
-            }
-
-            var selectedPlate = comboBoxPlateHistory.Text.Trim();
-            if (string.IsNullOrWhiteSpace(selectedPlate))
-            {
-                return;
-            }
-
-            try
-            {
-                var records = DatabaseHelper.GetWeighRecordsByPlate(selectedPlate);
-                var latestRecord = records
-                    .FirstOrDefault(r => string.Equals(r.PlateNumber, selectedPlate, StringComparison.OrdinalIgnoreCase))
-                    ?? records.FirstOrDefault();
-
-                if (latestRecord == null)
+                if (record.Remark.Contains(ModeTagTareFirst))
                 {
-                    return;
+                    return WeighingMode.TareFirst;
                 }
 
-                if (!string.IsNullOrWhiteSpace(latestRecord.Province) && comboBox7.Items.Contains(latestRecord.Province))
+                if (record.Remark.Contains(ModeTagGrossFirst))
                 {
-                    comboBox7.SelectedItem = latestRecord.Province;
-                }
-                else if (!string.IsNullOrWhiteSpace(latestRecord.PlateNumber))
-                {
-                    var province = latestRecord.PlateNumber.Substring(0, 1);
-                    if (comboBox7.Items.Contains(province))
-                    {
-                        comboBox7.SelectedItem = province;
-                    }
-                }
-
-                if (!string.IsNullOrWhiteSpace(latestRecord.PlateCode))
-                {
-                    textBox5.Text = latestRecord.PlateCode;
-                }
-                else if (!string.IsNullOrWhiteSpace(latestRecord.PlateNumber) && latestRecord.PlateNumber.Length > 1)
-                {
-                    textBox5.Text = latestRecord.PlateNumber.Substring(1);
-                }
-
-                // 仅回填基础业务信息，不覆盖当前实时重量
-                if (latestRecord.BusinessType == BusinessType.SalesOut)
-                {
-                    radioButton4.Checked = true;
-                }
-                else
-                {
-                    radioButton3.Checked = true;
+                    return WeighingMode.GrossFirst;
                 }
             }
-            catch
-            {
-                // 读取历史记录失败时忽略，避免影响称重流程
-            }
-        }
 
-        private void EnsureCurrentPlateInHistory()
-        {
-            var currentPlate = string.Format("{0}{1}", comboBox7.Text, textBox5.Text).Trim().ToUpperInvariant();
-            if (string.IsNullOrWhiteSpace(currentPlate))
-            {
-                return;
-            }
-
-            if (!plateHistoryCache.Any(p => string.Equals(p, currentPlate, StringComparison.OrdinalIgnoreCase)))
-            {
-                plateHistoryCache.Insert(0, currentPlate);
-                RefreshPlateHistoryDropdown(plateHistoryCache);
-            }
+            return fallback;
         }
     }
 }
