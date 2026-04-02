@@ -132,6 +132,31 @@ namespace pism_weigh.Models
         public DateTime UpdateTime { get; set; }
         
         /// <summary>
+        /// 记录类别（有效/临时修改/废弃/待审核）
+        /// </summary>
+        public RecordCategory Category { get; set; }
+        
+        /// <summary>
+        /// 修改历史 JSON
+        /// </summary>
+        public string ModifyHistory { get; set; }
+        
+        /// <summary>
+        /// 审核人 ID
+        /// </summary>
+        public string ReviewerId { get; set; }
+        
+        /// <summary>
+        /// 审核人姓名
+        /// </summary>
+        public string ReviewerName { get; set; }
+        
+        /// <summary>
+        /// 审核时间
+        /// </summary>
+        public DateTime? ReviewTime { get; set; }
+        
+        /// <summary>
         /// 构造函数
         /// </summary>
         public WeighRecord()
@@ -139,6 +164,9 @@ namespace pism_weigh.Models
             Id = Guid.NewGuid().ToString("N");
             CreateTime = DateTime.Now;
             UpdateTime = DateTime.Now;
+            Category = RecordCategory.Valid;
+            PrintCount = 0;
+            IsUploaded = false;
         }
     }
     
@@ -192,5 +220,31 @@ namespace pism_weigh.Models
         /// 已取消
         /// </summary>
         Cancelled = 3
+    }
+    
+    /// <summary>
+    /// 记录类别枚举 - 用于区分记录的有效性
+    /// </summary>
+    public enum RecordCategory
+    {
+        /// <summary>
+        /// 有效记录 - 正常称重完成的记录
+        /// </summary>
+        Valid = 0,
+        
+        /// <summary>
+        /// 临时修改 - 被修改过的记录，需要审核
+        /// </summary>
+        Temporary = 1,
+        
+        /// <summary>
+        /// 废弃记录 - 无效或错误的记录
+        /// </summary>
+        Invalid = 2,
+        
+        /// <summary>
+        /// 待审核 - 修改后等待审核确认
+        /// </summary>
+        PendingReview = 3
     }
 }

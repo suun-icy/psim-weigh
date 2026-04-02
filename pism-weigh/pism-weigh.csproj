@@ -61,6 +61,7 @@
     <Compile Include="HTTPS.cs" />
     <Compile Include="Models\Customer.cs" />
     <Compile Include="Models\WeighRecord.cs" />
+    <Compile Include="Models\ModifyHistory.cs" />
     <Compile Include="Database\DatabaseHelper.cs" />
     <Compile Include="Services\ScaleService.cs" />
     <Compile Include="Services\PrintService.cs" />
