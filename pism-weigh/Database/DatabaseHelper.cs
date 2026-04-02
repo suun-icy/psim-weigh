@@ -70,7 +70,12 @@ namespace pism_weigh.Database
                             PrintCount INTEGER DEFAULT 0,
                             IsUploaded INTEGER DEFAULT 0,
                             CreateTime DATETIME DEFAULT CURRENT_TIMESTAMP,
-                            UpdateTime DATETIME DEFAULT CURRENT_TIMESTAMP
+                            UpdateTime DATETIME DEFAULT CURRENT_TIMESTAMP,
+                            Category INTEGER DEFAULT 0,
+                            ModifyHistory TEXT,
+                            ReviewerId TEXT,
+                            ReviewerName TEXT,
+                            ReviewTime DATETIME
                         )";
                     ExecuteNonQuery(createWeighRecordTable);
 
@@ -175,12 +180,14 @@ namespace pism_weigh.Database
                     (Id, PlateNumber, Province, PlateCode, GrossWeight, TareWeight, NetWeight,
                      CargoType, Sender, Receiver, DriverName, DriverPhone, BusinessType, Status,
                      FirstWeighTime, SecondWeighTime, CompleteTime, OperatorId, OperatorName,
-                     Remark, PrintCount, IsUploaded, CreateTime, UpdateTime)
+                     Remark, PrintCount, IsUploaded, CreateTime, UpdateTime, Category, 
+                     ModifyHistory, ReviewerId, ReviewerName, ReviewTime)
                     VALUES 
                     (@Id, @PlateNumber, @Province, @PlateCode, @GrossWeight, @TareWeight, @NetWeight,
                      @CargoType, @Sender, @Receiver, @DriverName, @DriverPhone, @BusinessType, @Status,
                      @FirstWeighTime, @SecondWeighTime, @CompleteTime, @OperatorId, @OperatorName,
-                     @Remark, @PrintCount, @IsUploaded, @CreateTime, @UpdateTime)";
+                     @Remark, @PrintCount, @IsUploaded, @CreateTime, @UpdateTime, @Category, 
+                     @ModifyHistory, @ReviewerId, @ReviewerName, @ReviewTime)";
 
                 var parameters = new SQLiteParameter[]
                 {
@@ -207,7 +214,12 @@ namespace pism_weigh.Database
                     new SQLiteParameter("@PrintCount", record.PrintCount),
                     new SQLiteParameter("@IsUploaded", record.IsUploaded ? 1 : 0),
                     new SQLiteParameter("@CreateTime", record.CreateTime),
-                    new SQLiteParameter("@UpdateTime", DateTime.Now)
+                    new SQLiteParameter("@UpdateTime", DateTime.Now),
+                    new SQLiteParameter("@Category", (int)record.Category),
+                    new SQLiteParameter("@ModifyHistory", record.ModifyHistory ?? (string)null),
+                    new SQLiteParameter("@ReviewerId", record.ReviewerId ?? (string)null),
+                    new SQLiteParameter("@ReviewerName", record.ReviewerName ?? (string)null),
+                    new SQLiteParameter("@ReviewTime", record.ReviewTime ?? (object)DBNull.Value)
                 };
 
                 return ExecuteNonQuery(sql, parameters) > 0;
@@ -253,7 +265,12 @@ namespace pism_weigh.Database
                     PrintCount = Convert.ToInt32(row["PrintCount"]),
                     IsUploaded = Convert.ToInt32(row["IsUploaded"]) == 1,
                     CreateTime = Convert.ToDateTime(row["CreateTime"]),
-                    UpdateTime = Convert.ToDateTime(row["UpdateTime"])
+                    UpdateTime = Convert.ToDateTime(row["UpdateTime"]),
+                    Category = row["Category"] == DBNull.Value ? RecordCategory.Valid : (RecordCategory)Convert.ToInt32(row["Category"]),
+                    ModifyHistory = row["ModifyHistory"] == DBNull.Value ? null : row["ModifyHistory"].ToString(),
+                    ReviewerId = row["ReviewerId"] == DBNull.Value ? null : row["ReviewerId"].ToString(),
+                    ReviewerName = row["ReviewerName"] == DBNull.Value ? null : row["ReviewerName"].ToString(),
+                    ReviewTime = row["ReviewTime"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(row["ReviewTime"])
                 });
             }
             return list;
@@ -295,10 +312,206 @@ namespace pism_weigh.Database
                     PrintCount = Convert.ToInt32(row["PrintCount"]),
                     IsUploaded = Convert.ToInt32(row["IsUploaded"]) == 1,
                     CreateTime = Convert.ToDateTime(row["CreateTime"]),
-                    UpdateTime = Convert.ToDateTime(row["UpdateTime"])
+                    UpdateTime = Convert.ToDateTime(row["UpdateTime"]),
+                    Category = row["Category"] == DBNull.Value ? RecordCategory.Valid : (RecordCategory)Convert.ToInt32(row["Category"]),
+                    ModifyHistory = row["ModifyHistory"] == DBNull.Value ? null : row["ModifyHistory"].ToString(),
+                    ReviewerId = row["ReviewerId"] == DBNull.Value ? null : row["ReviewerId"].ToString(),
+                    ReviewerName = row["ReviewerName"] == DBNull.Value ? null : row["ReviewerName"].ToString(),
+                    ReviewTime = row["ReviewTime"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(row["ReviewTime"])
                 });
             }
             return list;
+        }
+
+        /// <summary>
+        /// 根据类别查询称重记录
+        /// </summary>
+        public static List<WeighRecord> GetWeighRecordsByCategory(RecordCategory category)
+        {
+            var list = new List<WeighRecord>();
+            var sql = "SELECT * FROM WeighRecords WHERE Category = @Category ORDER BY CreateTime DESC";
+            var dt = ExecuteQuery(sql, new SQLiteParameter("@Category", (int)category));
+            
+            foreach (DataRow row in dt.Rows)
+            {
+                list.Add(new WeighRecord
+                {
+                    Id = row["Id"].ToString(),
+                    PlateNumber = row["PlateNumber"].ToString(),
+                    Province = row["Province"].ToString(),
+                    PlateCode = row["PlateCode"].ToString(),
+                    GrossWeight = Convert.ToDecimal(row["GrossWeight"]),
+                    TareWeight = Convert.ToDecimal(row["TareWeight"]),
+                    NetWeight = Convert.ToDecimal(row["NetWeight"]),
+                    CargoType = row["CargoType"].ToString(),
+                    Sender = row["Sender"].ToString(),
+                    Receiver = row["Receiver"].ToString(),
+                    DriverName = row["DriverName"].ToString(),
+                    DriverPhone = row["DriverPhone"].ToString(),
+                    BusinessType = (BusinessType)Convert.ToInt32(row["BusinessType"]),
+                    Status = (WeighStatus)Convert.ToInt32(row["Status"]),
+                    FirstWeighTime = row["FirstWeighTime"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(row["FirstWeighTime"]),
+                    SecondWeighTime = row["SecondWeighTime"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(row["SecondWeighTime"]),
+                    CompleteTime = Convert.ToDateTime(row["CompleteTime"]),
+                    OperatorId = row["OperatorId"].ToString(),
+                    OperatorName = row["OperatorName"].ToString(),
+                    Remark = row["Remark"].ToString(),
+                    PrintCount = Convert.ToInt32(row["PrintCount"]),
+                    IsUploaded = Convert.ToInt32(row["IsUploaded"]) == 1,
+                    CreateTime = Convert.ToDateTime(row["CreateTime"]),
+                    UpdateTime = Convert.ToDateTime(row["UpdateTime"]),
+                    Category = row["Category"] == DBNull.Value ? RecordCategory.Valid : (RecordCategory)Convert.ToInt32(row["Category"]),
+                    ModifyHistory = row["ModifyHistory"] == DBNull.Value ? null : row["ModifyHistory"].ToString(),
+                    ReviewerId = row["ReviewerId"] == DBNull.Value ? null : row["ReviewerId"].ToString(),
+                    ReviewerName = row["ReviewerName"] == DBNull.Value ? null : row["ReviewerName"].ToString(),
+                    ReviewTime = row["ReviewTime"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(row["ReviewTime"])
+                });
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// 根据时间范围查询称重记录
+        /// </summary>
+        public static List<WeighRecord> GetWeighRecordsByDateRange(DateTime startDate, DateTime endDate)
+        {
+            var list = new List<WeighRecord>();
+            var sql = "SELECT * FROM WeighRecords WHERE CreateTime BETWEEN @StartDate AND @EndDate ORDER BY CreateTime DESC";
+            var dt = ExecuteQuery(sql, 
+                new SQLiteParameter("@StartDate", startDate),
+                new SQLiteParameter("@EndDate", endDate));
+            
+            foreach (DataRow row in dt.Rows)
+            {
+                list.Add(new WeighRecord
+                {
+                    Id = row["Id"].ToString(),
+                    PlateNumber = row["PlateNumber"].ToString(),
+                    Province = row["Province"].ToString(),
+                    PlateCode = row["PlateCode"].ToString(),
+                    GrossWeight = Convert.ToDecimal(row["GrossWeight"]),
+                    TareWeight = Convert.ToDecimal(row["TareWeight"]),
+                    NetWeight = Convert.ToDecimal(row["NetWeight"]),
+                    CargoType = row["CargoType"].ToString(),
+                    Sender = row["Sender"].ToString(),
+                    Receiver = row["Receiver"].ToString(),
+                    DriverName = row["DriverName"].ToString(),
+                    DriverPhone = row["DriverPhone"].ToString(),
+                    BusinessType = (BusinessType)Convert.ToInt32(row["BusinessType"]),
+                    Status = (WeighStatus)Convert.ToInt32(row["Status"]),
+                    FirstWeighTime = row["FirstWeighTime"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(row["FirstWeighTime"]),
+                    SecondWeighTime = row["SecondWeighTime"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(row["SecondWeighTime"]),
+                    CompleteTime = Convert.ToDateTime(row["CompleteTime"]),
+                    OperatorId = row["OperatorId"].ToString(),
+                    OperatorName = row["OperatorName"].ToString(),
+                    Remark = row["Remark"].ToString(),
+                    PrintCount = Convert.ToInt32(row["PrintCount"]),
+                    IsUploaded = Convert.ToInt32(row["IsUploaded"]) == 1,
+                    CreateTime = Convert.ToDateTime(row["CreateTime"]),
+                    UpdateTime = Convert.ToDateTime(row["UpdateTime"]),
+                    Category = row["Category"] == DBNull.Value ? RecordCategory.Valid : (RecordCategory)Convert.ToInt32(row["Category"]),
+                    ModifyHistory = row["ModifyHistory"] == DBNull.Value ? null : row["ModifyHistory"].ToString(),
+                    ReviewerId = row["ReviewerId"] == DBNull.Value ? null : row["ReviewerId"].ToString(),
+                    ReviewerName = row["ReviewerName"] == DBNull.Value ? null : row["ReviewerName"].ToString(),
+                    ReviewTime = row["ReviewTime"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(row["ReviewTime"])
+                });
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// 获取待审核的称重记录
+        /// </summary>
+        public static List<WeighRecord> GetPendingReviewRecords()
+        {
+            return GetWeighRecordsByCategory(RecordCategory.PendingReview);
+        }
+
+        /// <summary>
+        /// 审核称重记录
+        /// </summary>
+        public static bool ReviewWeighRecord(string id, string reviewerId, string reviewerName, bool approved)
+        {
+            try
+            {
+                if (approved)
+                {
+                    // 审核通过，设置为有效记录
+                    var sql = "UPDATE WeighRecords SET Category = @Category, ReviewerId = @ReviewerId, ReviewerName = @ReviewerName, ReviewTime = @ReviewTime WHERE Id = @Id";
+                    var parameters = new SQLiteParameter[]
+                    {
+                        new SQLiteParameter("@Category", (int)RecordCategory.Valid),
+                        new SQLiteParameter("@ReviewerId", reviewerId),
+                        new SQLiteParameter("@ReviewerName", reviewerName),
+                        new SQLiteParameter("@ReviewTime", DateTime.Now),
+                        new SQLiteParameter("@Id", id)
+                    };
+                    return ExecuteNonQuery(sql, parameters) > 0;
+                }
+                else
+                {
+                    // 审核拒绝，设置为废弃记录
+                    var sql = "UPDATE WeighRecords SET Category = @Category, ReviewerId = @ReviewerId, ReviewerName = @ReviewerName, ReviewTime = @ReviewTime WHERE Id = @Id";
+                    var parameters = new SQLiteParameter[]
+                    {
+                        new SQLiteParameter("@Category", (int)RecordCategory.Invalid),
+                        new SQLiteParameter("@ReviewerId", reviewerId),
+                        new SQLiteParameter("@ReviewerName", reviewerName),
+                        new SQLiteParameter("@ReviewTime", DateTime.Now),
+                        new SQLiteParameter("@Id", id)
+                    };
+                    return ExecuteNonQuery(sql, parameters) > 0;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 标记称重记录为临时修改
+        /// </summary>
+        public static bool MarkAsTemporary(string id, string modifyHistory)
+        {
+            try
+            {
+                var sql = "UPDATE WeighRecords SET Category = @Category, ModifyHistory = @ModifyHistory, UpdateTime = @UpdateTime WHERE Id = @Id";
+                var parameters = new SQLiteParameter[]
+                {
+                    new SQLiteParameter("@Category", (int)RecordCategory.Temporary),
+                    new SQLiteParameter("@ModifyHistory", modifyHistory),
+                    new SQLiteParameter("@UpdateTime", DateTime.Now),
+                    new SQLiteParameter("@Id", id)
+                };
+                return ExecuteNonQuery(sql, parameters) > 0;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 标记称重记录为废弃
+        /// </summary>
+        public static bool MarkAsInvalid(string id)
+        {
+            try
+            {
+                var sql = "UPDATE WeighRecords SET Category = @Category, UpdateTime = @UpdateTime WHERE Id = @Id";
+                var parameters = new SQLiteParameter[]
+                {
+                    new SQLiteParameter("@Category", (int)RecordCategory.Invalid),
+                    new SQLiteParameter("@UpdateTime", DateTime.Now),
+                    new SQLiteParameter("@Id", id)
+                };
+                return ExecuteNonQuery(sql, parameters) > 0;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         /// <summary>
