@@ -38,10 +38,14 @@ namespace pism_weigh
         private const int StableReadThreshold = 3;
         private const double StableDeltaThreshold = 0.005;
         private const string WeightUnit = " t";
+        private const string ModeTagGrossFirst = "[MODE:GROSS_FIRST]";
+        private const string ModeTagTareFirst = "[MODE:TARE_FIRST]";
         private double? _lastCurrentWeight;
         private double? _stableWeight;
         private int _stableReadCount;
         private int _printCount;
+        private decimal? lastCapturedWeight;
+        private CapturedWeightType? lastCapturedWeightType;
 		public Form1()
         {
             InitializeComponent();
@@ -196,7 +200,7 @@ namespace pism_weigh
         private void button2_Click(object sender, EventArgs e)
         {
             //车牌判空
-            if (textBox5.Text == null || comboBox7.SelectedIndex == -1)
+            if (string.IsNullOrWhiteSpace(textBox5.Text) || comboBox7.SelectedIndex == -1)
             {
                 //响铃并显示异常给用户
                 System.Media.SystemSounds.Beep.Play();
@@ -214,10 +218,9 @@ namespace pism_weigh
             {
                 //填充数据
                 textBox1.Text = textBox6.Text;
-                decimal captured;
-                if (decimal.TryParse(textBox1.Text, out captured))
+                if (TryParseWeightText(textBox1.Text, "重车重量", out double captured))
                 {
-                    lastCapturedWeight = captured;
+                    lastCapturedWeight = Convert.ToDecimal(captured);
                     lastCapturedWeightType = CapturedWeightType.Gross;
                 }
             }
@@ -362,7 +365,7 @@ namespace pism_weigh
         private void button4_Click(object sender, EventArgs e)
         {
             //车牌判空
-            if (textBox5.Text == null || comboBox7.SelectedIndex == -1) {
+            if (string.IsNullOrWhiteSpace(textBox5.Text) || comboBox7.SelectedIndex == -1) {
                 //响铃并显示异常给用户
                 System.Media.SystemSounds.Beep.Play();
                 MessageBox.Show("车牌为空");
@@ -378,10 +381,9 @@ namespace pism_weigh
             else {
                 //填充数据
                 textBox2.Text = textBox6.Text;
-                decimal captured;
-                if (decimal.TryParse(textBox2.Text, out captured))
+                if (TryParseWeightText(textBox2.Text, "空车重量", out double captured))
                 {
-                    lastCapturedWeight = captured;
+                    lastCapturedWeight = Convert.ToDecimal(captured);
                     lastCapturedWeightType = CapturedWeightType.Tare;
                 }
             }
@@ -677,6 +679,28 @@ namespace pism_weigh
             }
 
             return fallback;
+        }
+
+        private void EnsureCurrentPlateInHistory()
+        {
+            var plateSuffix = (textBox5.Text ?? string.Empty).Trim().ToUpperInvariant();
+            if (string.IsNullOrWhiteSpace(comboBox7.Text) || string.IsNullOrWhiteSpace(plateSuffix))
+            {
+                return;
+            }
+
+            string fullPlate = comboBox7.Text + plateSuffix;
+            if (Array.IndexOf(str, fullPlate) >= 0)
+            {
+                return;
+            }
+
+            if (i >= str.Length)
+            {
+                i = 0;
+            }
+
+            str[i++] = fullPlate;
         }
     }
 }
