@@ -7,6 +7,18 @@
       "RelativeMoniker": "D:0:0:{E98C83FA-06C1-4822-8AE3-9E06AB394BC8}|pism-weigh\\pism-weigh.csproj|solutionrelative:pism-weigh\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{E98C83FA-06C1-4822-8AE3-9E06AB394BC8}|pism-weigh\\pism-weigh.csproj|d:\\work-code\\project\\psim-weigh-master\\pism-weigh\\print.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E98C83FA-06C1-4822-8AE3-9E06AB394BC8}|pism-weigh\\pism-weigh.csproj|solutionrelative:pism-weigh\\print.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E98C83FA-06C1-4822-8AE3-9E06AB394BC8}|pism-weigh\\pism-weigh.csproj|d:\\work-code\\project\\psim-weigh-master\\pism-weigh\\print.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{E98C83FA-06C1-4822-8AE3-9E06AB394BC8}|pism-weigh\\pism-weigh.csproj|solutionrelative:pism-weigh\\print.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E98C83FA-06C1-4822-8AE3-9E06AB394BC8}|pism-weigh\\pism-weigh.csproj|d:\\work-code\\project\\psim-weigh-master\\pism-weigh\\form1.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E98C83FA-06C1-4822-8AE3-9E06AB394BC8}|pism-weigh\\pism-weigh.csproj|solutionrelative:pism-weigh\\form1.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{E98C83FA-06C1-4822-8AE3-9E06AB394BC8}|pism-weigh\\pism-weigh.csproj|d:\\work-code\\project\\psim-weigh-master\\pism-weigh\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
       "RelativeMoniker": "D:0:0:{E98C83FA-06C1-4822-8AE3-9E06AB394BC8}|pism-weigh\\pism-weigh.csproj|solutionrelative:pism-weigh\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
     },
@@ -45,7 +57,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 33,
+          "SelectedChildIndex": 36,
           "Children": [
             {
               "$type": "Bookmark",
@@ -149,20 +161,58 @@
             },
             {
               "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "print.cs",
+              "DocumentMoniker": "D:\\work-code\\project\\psim-weigh-master\\pism-weigh\\print.cs",
+              "RelativeDocumentMoniker": "pism-weigh\\print.cs",
+              "ToolTip": "D:\\work-code\\project\\psim-weigh-master\\pism-weigh\\print.cs",
+              "RelativeToolTip": "pism-weigh\\print.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-03T01:29:56.529Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 2,
+              "Title": "print.cs [\u8BBE\u8BA1]",
+              "DocumentMoniker": "D:\\work-code\\project\\psim-weigh-master\\pism-weigh\\print.cs",
+              "RelativeDocumentMoniker": "pism-weigh\\print.cs",
+              "ToolTip": "D:\\work-code\\project\\psim-weigh-master\\pism-weigh\\print.cs [\u8BBE\u8BA1]",
+              "RelativeToolTip": "pism-weigh\\print.cs [\u8BBE\u8BA1]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-03T01:29:51.931Z",
+              "EditorCaption": " [\u8BBE\u8BA1]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Form1.Designer.cs",
+              "DocumentMoniker": "D:\\work-code\\project\\psim-weigh-master\\pism-weigh\\Form1.Designer.cs",
+              "RelativeDocumentMoniker": "pism-weigh\\Form1.Designer.cs",
+              "ToolTip": "D:\\work-code\\project\\psim-weigh-master\\pism-weigh\\Form1.Designer.cs",
+              "RelativeToolTip": "pism-weigh\\Form1.Designer.cs",
+              "ViewState": "AgIAAEkBAAAAAAAAAAAwwHEBAAByAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-03T01:12:05.16Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
               "Title": "ScaleService.cs",
               "DocumentMoniker": "D:\\work-code\\project\\psim-weigh-master\\pism-weigh\\Services\\ScaleService.cs",
               "RelativeDocumentMoniker": "pism-weigh\\Services\\ScaleService.cs",
               "ToolTip": "D:\\work-code\\project\\psim-weigh-master\\pism-weigh\\Services\\ScaleService.cs",
               "RelativeToolTip": "pism-weigh\\Services\\ScaleService.cs",
-              "ViewState": "AgIAAAQAAAAAAAAAAAAMwBIAAAAiAAAAAAAAAA==",
+              "ViewState": "AgIAAAUAAAAAAAAAAAAMwBQAAAAiAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-04-02T10:08:18.294Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 4,
               "Title": "Form1.cs [\u8BBE\u8BA1]",
               "DocumentMoniker": "D:\\work-code\\project\\psim-weigh-master\\pism-weigh\\Form1.cs",
               "RelativeDocumentMoniker": "pism-weigh\\Form1.cs",
@@ -174,7 +224,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 6,
               "Title": "user.cs",
               "DocumentMoniker": "D:\\work-code\\project\\psim-weigh-master\\pism-weigh\\user.cs",
               "RelativeDocumentMoniker": "pism-weigh\\user.cs",
@@ -187,7 +237,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 7,
               "Title": "UserLogin.cs [\u8BBE\u8BA1]",
               "DocumentMoniker": "D:\\work-code\\project\\psim-weigh-master\\pism-weigh\\UserLogin.cs",
               "RelativeDocumentMoniker": "pism-weigh\\UserLogin.cs",
@@ -199,7 +249,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 8,
               "Title": "UserControl1.cs [\u8BBE\u8BA1]",
               "DocumentMoniker": "D:\\work-code\\project\\psim-weigh-master\\pism-weigh\\UserControl1.cs",
               "RelativeDocumentMoniker": "pism-weigh\\UserControl1.cs",
@@ -211,7 +261,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 10,
               "Title": "pism-weigh",
               "DocumentMoniker": "D:\\work-code\\project\\psim-weigh-master\\pism-weigh\\pism-weigh.csproj",
               "RelativeDocumentMoniker": "pism-weigh\\pism-weigh.csproj",
@@ -222,7 +272,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 11,
               "Title": "PrintService.cs",
               "DocumentMoniker": "D:\\work-code\\project\\psim-weigh-master\\pism-weigh\\Services\\PrintService.cs",
               "RelativeDocumentMoniker": "pism-weigh\\Services\\PrintService.cs",
@@ -234,7 +284,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 9,
               "Title": "DatabaseHelper.cs",
               "DocumentMoniker": "D:\\work-code\\project\\psim-weigh-master\\pism-weigh\\Database\\DatabaseHelper.cs",
               "RelativeDocumentMoniker": "pism-weigh\\Database\\DatabaseHelper.cs",
@@ -253,7 +303,7 @@
               "RelativeDocumentMoniker": "pism-weigh\\Form1.cs",
               "ToolTip": "D:\\work-code\\project\\psim-weigh-master\\pism-weigh\\Form1.cs*",
               "RelativeToolTip": "pism-weigh\\Form1.cs*",
-              "ViewState": "AgIAAHwAAAAAAAAAAAAcwI0AAAAHAAAAAAAAAA==",
+              "ViewState": "AgIAAI8CAAAAAAAAAAAAAJECAAATAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-04-02T08:22:50.933Z",
               "EditorCaption": ""

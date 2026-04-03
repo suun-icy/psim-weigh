@@ -6,13 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Globalization;
 using System.Data;
 using System.Drawing;
+using System.Globalization;
 using System.IO.Ports;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace pism_weigh
 {
@@ -31,6 +32,7 @@ namespace pism_weigh
         }
         
         private long receive_count = 0;
+        private bool isUpdatingPlateHistory = false;
         private StringBuilder sb = new StringBuilder();
         string[] str = new string[50];
         int i = 0;
@@ -46,6 +48,8 @@ namespace pism_weigh
         private int _printCount;
         private decimal? lastCapturedWeight;
         private CapturedWeightType? lastCapturedWeightType;
+		private List<string> plateHistoryCache;
+
 		public Form1()
         {
             InitializeComponent();
@@ -93,10 +97,11 @@ namespace pism_weigh
             comboBox7.Items.Add("港");
             comboBox7.Items.Add("澳");
             comboBox7.Items.Add("台");
-            comboBox8.Items.Add("先毛后皮");
+			comboBox8.Items.Add("先毛后皮");
             comboBox8.Items.Add("先皮后毛");
             comboBox8.SelectedIndex = 0;
-        }
+			LoadPlateHistoryFromDatabase();
+		}
 
         private void label1_Click(object sender, EventArgs e)
         {
@@ -639,12 +644,163 @@ namespace pism_weigh
             textBox2.Text = "";
             textBox3.Text = "";
             textBox5.Text = "";
-                //打开浏览器登录界面
+			//打开浏览器登录界面
+			EnsureCurrentPlateInHistory();
 
-            
-        }
 
-        private void radioButton3_CheckedChanged(object sender, EventArgs e)
+		}
+
+		private void LoadPlateHistoryFromDatabase()
+		{
+			try
+			{
+				var allRecords = DatabaseHelper.GetAllWeighRecords();
+				plateHistoryCache = allRecords
+					.Select(r => r.PlateNumber)
+					.Where(p => !string.IsNullOrWhiteSpace(p))
+					.Distinct(StringComparer.OrdinalIgnoreCase)
+					.ToList();
+
+				RefreshPlateHistoryDropdown(plateHistoryCache);
+			}
+			catch
+			{
+				plateHistoryCache = new List<string>();
+				RefreshPlateHistoryDropdown(plateHistoryCache);
+			}
+		}
+
+		private void RefreshPlateHistoryDropdown(IEnumerable<string> plates)
+		{
+			isUpdatingPlateHistory = true;
+			var currentText = comboBoxPlateHistory.Text;
+
+			comboBoxPlateHistory.BeginUpdate();
+			comboBoxPlateHistory.Items.Clear();
+			foreach (var plate in plates)
+			{
+				comboBoxPlateHistory.Items.Add(plate);
+			}
+			comboBoxPlateHistory.EndUpdate();
+			comboBoxPlateHistory.Text = currentText;
+			comboBoxPlateHistory.SelectionStart = comboBoxPlateHistory.Text.Length;
+			isUpdatingPlateHistory = false;
+		}
+
+		private void comboBoxPlateHistory_TextChanged(object sender, EventArgs e)
+		{
+			if (isUpdatingPlateHistory)
+			{
+				return;
+			}
+
+			var keyword = comboBoxPlateHistory.Text.Trim();
+			if (string.IsNullOrWhiteSpace(keyword))
+			{
+				RefreshPlateHistoryDropdown(plateHistoryCache);
+				return;
+			}
+
+			try
+			{
+				var dynamicPlates = DatabaseHelper.GetWeighRecordsByPlate(keyword)
+					.Select(r => r.PlateNumber)
+					.Where(p => !string.IsNullOrWhiteSpace(p))
+					.Distinct(StringComparer.OrdinalIgnoreCase)
+					.ToList();
+
+				RefreshPlateHistoryDropdown(dynamicPlates);
+				comboBoxPlateHistory.DroppedDown = true;
+				comboBoxPlateHistory.SelectionStart = comboBoxPlateHistory.Text.Length;
+			}
+			catch
+			{
+				var fallbackPlates = plateHistoryCache
+					.Where(p => p.IndexOf(keyword, StringComparison.OrdinalIgnoreCase) >= 0)
+					.ToList();
+				RefreshPlateHistoryDropdown(fallbackPlates);
+			}
+		}
+
+		private void comboBoxPlateHistory_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			if (isUpdatingPlateHistory)
+			{
+				return;
+			}
+
+			var selectedPlate = comboBoxPlateHistory.Text.Trim();
+			if (string.IsNullOrWhiteSpace(selectedPlate))
+			{
+				return;
+			}
+
+			try
+			{
+				var records = DatabaseHelper.GetWeighRecordsByPlate(selectedPlate);
+				var latestRecord = records
+					.FirstOrDefault(r => string.Equals(r.PlateNumber, selectedPlate, StringComparison.OrdinalIgnoreCase))
+					?? records.FirstOrDefault();
+
+				if (latestRecord == null)
+				{
+					return;
+				}
+
+				if (!string.IsNullOrWhiteSpace(latestRecord.Province) && comboBox7.Items.Contains(latestRecord.Province))
+				{
+					comboBox7.SelectedItem = latestRecord.Province;
+				}
+				else if (!string.IsNullOrWhiteSpace(latestRecord.PlateNumber))
+				{
+					var province = latestRecord.PlateNumber.Substring(0, 1);
+					if (comboBox7.Items.Contains(province))
+					{
+						comboBox7.SelectedItem = province;
+					}
+				}
+
+				if (!string.IsNullOrWhiteSpace(latestRecord.PlateCode))
+				{
+					textBox5.Text = latestRecord.PlateCode;
+				}
+				else if (!string.IsNullOrWhiteSpace(latestRecord.PlateNumber) && latestRecord.PlateNumber.Length > 1)
+				{
+					textBox5.Text = latestRecord.PlateNumber.Substring(1);
+				}
+
+				// 仅回填基础业务信息，不覆盖当前实时重量
+				if (latestRecord.BusinessType == BusinessType.SalesOut)
+				{
+					radioButton4.Checked = true;
+				}
+				else
+				{
+					radioButton3.Checked = true;
+				}
+			}
+			catch
+			{
+				// 读取历史记录失败时忽略，避免影响称重流程
+			}
+		}
+
+		private void EnsureCurrentPlateInHistory()
+		{
+			var currentPlate = string.Format("{0}{1}", comboBox7.Text, textBox5.Text).Trim().ToUpperInvariant();
+			if (string.IsNullOrWhiteSpace(currentPlate))
+			{
+				return;
+			}
+
+			if (!plateHistoryCache.Any(p => string.Equals(p, currentPlate, StringComparison.OrdinalIgnoreCase)))
+			{
+				plateHistoryCache.Insert(0, currentPlate);
+				RefreshPlateHistoryDropdown(plateHistoryCache);
+			}
+		}
+
+		private void radioButton3_CheckedChanged(object sender, EventArgs e)
         {
         }
 
@@ -681,26 +837,26 @@ namespace pism_weigh
             return fallback;
         }
 
-        private void EnsureCurrentPlateInHistory()
-        {
-            var plateSuffix = (textBox5.Text ?? string.Empty).Trim().ToUpperInvariant();
-            if (string.IsNullOrWhiteSpace(comboBox7.Text) || string.IsNullOrWhiteSpace(plateSuffix))
-            {
-                return;
-            }
+        //private void EnsureCurrentPlateInHistory()
+        //{
+        //    var plateSuffix = (textBox5.Text ?? string.Empty).Trim().ToUpperInvariant();
+        //    if (string.IsNullOrWhiteSpace(comboBox7.Text) || string.IsNullOrWhiteSpace(plateSuffix))
+        //    {
+        //        return;
+        //    }
 
-            string fullPlate = comboBox7.Text + plateSuffix;
-            if (Array.IndexOf(str, fullPlate) >= 0)
-            {
-                return;
-            }
+        //    string fullPlate = comboBox7.Text + plateSuffix;
+        //    if (Array.IndexOf(str, fullPlate) >= 0)
+        //    {
+        //        return;
+        //    }
 
-            if (i >= str.Length)
-            {
-                i = 0;
-            }
+        //    if (i >= str.Length)
+        //    {
+        //        i = 0;
+        //    }
 
-            str[i++] = fullPlate;
-        }
+        //    str[i++] = fullPlate;
+        //}
     }
 }
