@@ -49,6 +49,7 @@ namespace pism_weigh
         private decimal? lastCapturedWeight;
         private CapturedWeightType? lastCapturedWeightType;
 		private List<string> plateHistoryCache;
+        private string _latestSourceUnit = "t";
 
 		public Form1()
         {
@@ -57,6 +58,7 @@ namespace pism_weigh
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            ApplyModernUiStyle();
             //设置默认值
             comboBox2.Text = "600";
             comboBox3.Text = "8";
@@ -259,8 +261,10 @@ namespace pism_weigh
 						string asciiFrame = Encoding.ASCII.GetString(buffer);
 						textBox_receive.AppendText(asciiFrame + "\r\n");
 
-						if (ScaleService.TryParseWeightFrame(asciiFrame, out double currentWeight))
+						if (ScaleService.TryParseWeightFrame(asciiFrame, out double currentWeight, out string sourceUnit))
 						{
+                            _latestSourceUnit = sourceUnit;
+                            DatabaseHelper.SaveRawWeightLog(asciiFrame, currentWeight, sourceUnit);
 							textBoxCurrentWeight.Text = FormatWeight(currentWeight);
 							UpdateStableWeight(currentWeight);
 						}
@@ -634,10 +638,38 @@ namespace pism_weigh
             weightinfo.printCount = _printCount;
             weightinfo.printUser = user.userName;
             weightinfo.createDate = new DateTime();
-            //开始上传数据至数据库
-            NameValueCollection valueCollection = new NameValueCollection();
-            valueCollection.Set("Authorization", user.token);
-            HTTPS.HttppPost("http://10.102.84.200:9999/pms/weightinfo/addWeightinfo", JsonConvert.SerializeObject(weightinfo), "utf-8", "application/json", valueCollection);
+            
+            var record = DatabaseHelper.GetLatestOpenRecordByPlate(cargoPlate);
+            if (record == null)
+            {
+                var completed = DatabaseHelper.GetWeighRecordsByPlate(cargoPlate).FirstOrDefault(r => r.Status == WeighStatus.Completed);
+                record = completed ?? new WeighRecord();
+            }
+
+            record.PlateNumber = cargoPlate;
+            record.Province = comboBox7.Text;
+            record.PlateCode = textBox5.Text?.Trim().ToUpperInvariant();
+            record.GrossWeight = Convert.ToDecimal(roughWeight);
+            record.TareWeight = Convert.ToDecimal(tareWeight);
+            record.NetWeight = Convert.ToDecimal(netWeight);
+            record.BusinessType = cargoComeOut ? BusinessType.SalesOut : BusinessType.PurchaseIn;
+            record.Status = WeighStatus.Completed;
+            record.FirstWeighTime = record.FirstWeighTime ?? DateTime.Now;
+            record.SecondWeighTime = record.SecondWeighTime ?? DateTime.Now;
+            record.CompleteTime = DateTime.Now;
+            record.PrintCount = _printCount;
+            record.OperatorName = user.userName;
+            record.Remark = string.Format("LOCAL_ONLY|SRC_UNIT:{0}", _latestSourceUnit ?? "t");
+            record.IsUploaded = false;
+            record.UpdateTime = DateTime.Now;
+
+            if (!DatabaseHelper.SaveWeighRecord(record))
+            {
+                MessageBox.Show("保存本地称重数据失败");
+                return;
+            }
+
+            MessageBox.Show("称重单已保存到本地 SQLite。");
             EnsureCurrentPlateInHistory();
 
             textBox1.Text = "";
@@ -649,6 +681,38 @@ namespace pism_weigh
 
 
 		}
+
+        private void ApplyModernUiStyle()
+        {
+            Font = new Font("Microsoft YaHei UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 134);
+            BackColor = Color.FromArgb(245, 248, 252);
+
+            var panels = new[] { panel1, panel2, panel3, panel4, panel5, panel6 };
+            foreach (var panel in panels)
+            {
+                panel.BackColor = Color.White;
+                panel.BorderStyle = BorderStyle.FixedSingle;
+            }
+
+            var actionButtons = new[] { button1, button2, button4, button5, button6, button7, button8, button9, button10, button3 };
+            foreach (var button in actionButtons)
+            {
+                button.FlatStyle = FlatStyle.Flat;
+                button.FlatAppearance.BorderColor = Color.FromArgb(200, 210, 223);
+                button.BackColor = Color.FromArgb(240, 244, 250);
+            }
+
+            textBoxCurrentWeight.Font = new Font("Consolas", 22F, FontStyle.Bold);
+            textBox6.Font = new Font("Consolas", 22F, FontStyle.Bold);
+            textBox_receive.BackColor = Color.FromArgb(250, 251, 253);
+
+            panel2.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            panel3.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            panel5.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            textBox_receive.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            textBoxCurrentWeight.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+            textBox6.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+        }
 
 		private void LoadPlateHistoryFromDatabase()
 		{

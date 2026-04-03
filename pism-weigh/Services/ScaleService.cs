@@ -15,6 +15,7 @@ namespace pism_weigh.Services
 	public class ScaleService : IDisposable
 	{
 		private static readonly Regex WeightRegex = new Regex(@"[-+]?\d*\.?\d+", RegexOptions.Compiled);
+		private static readonly Regex UnitRegex = new Regex(@"(?<unit>kg|g|t|吨)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 		private SerialPort _serialPort;
 		private readonly object _lock = new object();
 		private bool _isDisposed = false;
@@ -40,7 +41,13 @@ namespace pism_weigh.Services
 
 		public static bool TryParseWeightFrame(string frame, out double weight)
 		{
+			return TryParseWeightFrame(frame, out weight, out _);
+		}
+
+		public static bool TryParseWeightFrame(string frame, out double weight, out string unit)
+		{
 			weight = 0.0;
+			unit = "t";
 			if (string.IsNullOrWhiteSpace(frame))
 			{
 				return false;
@@ -52,8 +59,35 @@ namespace pism_weigh.Services
 				return false;
 			}
 
-			return double.TryParse(match.Value, NumberStyles.Float | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out weight)
-				|| double.TryParse(match.Value, NumberStyles.Float | NumberStyles.AllowLeadingSign, CultureInfo.CurrentCulture, out weight);
+			if (!(double.TryParse(match.Value, NumberStyles.Float | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out weight)
+				|| double.TryParse(match.Value, NumberStyles.Float | NumberStyles.AllowLeadingSign, CultureInfo.CurrentCulture, out weight)))
+			{
+				return false;
+			}
+
+			var unitMatch = UnitRegex.Match(frame);
+			if (unitMatch.Success)
+			{
+				unit = unitMatch.Groups["unit"].Value.ToLowerInvariant();
+			}
+
+			weight = ConvertWeightToTon(weight, unit);
+			return true;
+		}
+
+		private static double ConvertWeightToTon(double rawWeight, string unit)
+		{
+			switch ((unit ?? "t").Trim().ToLowerInvariant())
+			{
+				case "kg":
+					return rawWeight / 1000.0;
+				case "g":
+					return rawWeight / 1000000.0;
+				case "吨":
+				case "t":
+				default:
+					return rawWeight;
+			}
 		}
 
 		public void Connect()
