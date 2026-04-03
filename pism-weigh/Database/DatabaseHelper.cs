@@ -106,6 +106,16 @@ namespace pism_weigh.Database
                         )";
                     ExecuteNonQuery(createCargoTypeTable);
 
+                    string createRawWeightTable = @"
+                        CREATE TABLE IF NOT EXISTS RawWeightLogs (
+                            Id TEXT PRIMARY KEY,
+                            Frame TEXT,
+                            ParsedWeightTon REAL,
+                            SourceUnit TEXT,
+                            CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+                        )";
+                    ExecuteNonQuery(createRawWeightTable);
+
                     // 创建索引
                     string createIndexPlateNumber = "CREATE INDEX IF NOT EXISTS IDX_PlateNumber ON WeighRecords(PlateNumber)";
                     ExecuteNonQuery(createIndexPlateNumber);
@@ -167,6 +177,27 @@ namespace pism_weigh.Database
         }
 
         #region 称重记录操作
+
+        public static bool SaveRawWeightLog(string frame, double parsedWeightTon, string sourceUnit)
+        {
+            try
+            {
+                string sql = @"
+                    INSERT INTO RawWeightLogs (Id, Frame, ParsedWeightTon, SourceUnit, CreatedAt)
+                    VALUES (@Id, @Frame, @ParsedWeightTon, @SourceUnit, @CreatedAt)";
+
+                return ExecuteNonQuery(sql,
+                    new SQLiteParameter("@Id", Guid.NewGuid().ToString("N")),
+                    new SQLiteParameter("@Frame", frame ?? (object)DBNull.Value),
+                    new SQLiteParameter("@ParsedWeightTon", parsedWeightTon),
+                    new SQLiteParameter("@SourceUnit", sourceUnit ?? "t"),
+                    new SQLiteParameter("@CreatedAt", DateTime.Now)) > 0;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
         /// <summary>
         /// 保存称重记录
