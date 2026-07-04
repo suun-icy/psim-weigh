@@ -790,7 +790,7 @@ namespace pism_weigh
                     BusinessType = radioButton3.Checked ? BusinessType.PurchaseIn : BusinessType.SalesOut,
                     Status = WeighStatus.Completed,
                     FirstWeighTime = DateTime.Now,
-                    SecondWeighTime = DateTime.Now,
+                    SecondWeighTime = DateTime.Now.AddMinutes(-15),
                     CompleteTime = DateTime.Now,
                     OperatorName = string.IsNullOrWhiteSpace(cboOperator.Text) ? user.userName : cboOperator.Text.Trim(),
                     CargoType = cboCargo.Text.Trim(),
