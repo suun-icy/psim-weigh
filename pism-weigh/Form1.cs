@@ -523,6 +523,64 @@ namespace pism_weigh
                 return;
             }
 
+            if (checkBoxManualMode.Checked)
+            {
+                // 手动模式：直接读取 textBox1 和 textBox2 的输入值
+                var manualPlate = comboBox7.Text + textBox5.Text.Trim().ToUpper();
+                if (!TryParseWeightText(textBox1.Text, "重车", out double manualGross))
+                {
+                    return;
+                }
+                if (manualGross < 0)
+                {
+                    MessageBox.Show("重车重量不能为负数");
+                    return;
+                }
+                if (!TryParseWeightText(textBox2.Text, "空车", out double manualTare))
+                {
+                    return;
+                }
+                if (manualTare < 0)
+                {
+                    MessageBox.Show("空车重量不能为负数");
+                    return;
+                }
+
+                var manualNetWeight = manualGross - manualTare;
+                if (manualNetWeight < 0)
+                {
+                    MessageBox.Show("净重不能为负数，请检查重车和空车重量输入。");
+                    return;
+                }
+
+                var manualRecord = new WeighRecord
+                {
+                    PlateNumber = manualPlate,
+                    Province = comboBox7.Text,
+                    PlateCode = textBox5.Text.Trim().ToUpper(),
+                    GrossWeight = Convert.ToDecimal(manualGross),
+                    TareWeight = Convert.ToDecimal(manualTare),
+                    NetWeight = Convert.ToDecimal(manualNetWeight),
+                    BusinessType = radioButton3.Checked ? BusinessType.PurchaseIn : BusinessType.SalesOut,
+                    Status = WeighStatus.Completed,
+                    FirstWeighTime = DateTime.Now,
+                    SecondWeighTime = DateTime.Now,
+                    CompleteTime = DateTime.Now,
+                    OperatorName = user.userName,
+                    Remark = "[MANUAL_MODE]"
+                };
+
+                if (!DatabaseHelper.SaveWeighRecord(manualRecord))
+                {
+                    MessageBox.Show("手动称重保存失败。");
+                    return;
+                }
+
+                textBox3.Text = manualNetWeight.ToString("0.###");
+                MessageBox.Show("称重完成，净重：" + textBox3.Text + " 吨（已保存）");
+                return;
+            }
+
             if (lastCapturedWeight == null || lastCapturedWeightType == null)
             {
                 MessageBox.Show("请先点击“称取重车”或“称取空车”采集本次重量。");
@@ -954,6 +1012,8 @@ namespace pism_weigh
                 labelManualTip.Visible = true;
                 label6.Text = "手动模式";
                 label6.ForeColor = System.Drawing.Color.DarkOrange;
+                button2.Enabled = false;
+                button4.Enabled = false;
             }
             else
             {
@@ -961,6 +1021,8 @@ namespace pism_weigh
                 labelManualTip.Visible = false;
                 label6.Text = "串口已关闭";
                 label6.ForeColor = System.Drawing.Color.Red;
+                button2.Enabled = true;
+                button4.Enabled = true;
             }
         }
     }

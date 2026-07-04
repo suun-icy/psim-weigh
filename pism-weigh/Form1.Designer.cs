@@ -400,7 +400,7 @@ namespace pism_weigh
             this.labelManualTip.Name = "labelManualTip";
             this.labelManualTip.Size = new System.Drawing.Size(173, 12);
             this.labelManualTip.TabIndex = 22;
-            this.labelManualTip.Text = "手动模式下可直接输入重量数值";
+            this.labelManualTip.Text = "手动模式下直接填写重量后点\"计算\"";
             this.labelManualTip.Visible = false;
             // 
             // textBox5
