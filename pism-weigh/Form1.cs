@@ -52,25 +52,122 @@ namespace pism_weigh
 		private List<string> plateHistoryCache;
         private string _latestSourceUnit = "t";
         private AppConfig _config;
+        private System.Windows.Forms.TextBox txtCargo;
+        private System.Windows.Forms.TextBox txtDriver;
+        private System.Windows.Forms.TextBox txtReceiver;
 
 		public Form1()
         {
             InitializeComponent();
             this.FormClosing += Form1_FormClosing;
-            InitQueryButton();
+            InitExtraControls();
         }
 
-        private void InitQueryButton()
+        private void InitExtraControls()
         {
+            // 扩大 panel3 以容纳新字段
+            panel3.Height = 270;
+            this.Height = 560;
+            panel6.Top = panel3.Bottom + 5;
+
+            // "查询"按钮
             var btnQuery = new System.Windows.Forms.Button
             {
                 Text = "查询",
-                Location = new System.Drawing.Point(438, 7),
+                Location = new System.Drawing.Point(265, 138),
                 Size = new System.Drawing.Size(65, 28),
                 UseVisualStyleBackColor = true
             };
             btnQuery.Click += (s, e) => { new QueryForm().ShowDialog(); };
             panel3.Controls.Add(btnQuery);
+
+            // 运输内容
+            var lblCargo = new System.Windows.Forms.Label
+            {
+                Text = "运输内容", AutoSize = true,
+                Location = new System.Drawing.Point(8, 198)
+            };
+            panel3.Controls.Add(lblCargo);
+
+            txtCargo = new System.Windows.Forms.TextBox
+            {
+                Location = new System.Drawing.Point(81, 194),
+                Size = new System.Drawing.Size(163, 21),
+                Font = new System.Drawing.Font("宋体", 9F)
+            };
+            panel3.Controls.Add(txtCargo);
+
+            // 司机
+            var lblDriver = new System.Windows.Forms.Label
+            {
+                Text = "司机", AutoSize = true,
+                Location = new System.Drawing.Point(8, 228)
+            };
+            panel3.Controls.Add(lblDriver);
+
+            txtDriver = new System.Windows.Forms.TextBox
+            {
+                Location = new System.Drawing.Point(81, 224),
+                Size = new System.Drawing.Size(163, 21),
+                Font = new System.Drawing.Font("宋体", 9F)
+            };
+            panel3.Controls.Add(txtDriver);
+
+            // 收货单位
+            var lblReceiver = new System.Windows.Forms.Label
+            {
+                Text = "收货单位", AutoSize = true,
+                Location = new System.Drawing.Point(265, 228)
+            };
+            panel3.Controls.Add(lblReceiver);
+
+            txtReceiver = new System.Windows.Forms.TextBox
+            {
+                Location = new System.Drawing.Point(340, 224),
+                Size = new System.Drawing.Size(200, 21),
+                Font = new System.Drawing.Font("宋体", 9F)
+            };
+            panel3.Controls.Add(txtReceiver);
+
+            // 设置 AutoComplete
+            SetupAutoComplete();
+        }
+
+        private void SetupAutoComplete()
+        {
+            try
+            {
+                var cargoSource = new System.Windows.Forms.AutoCompleteStringCollection();
+                var driverSource = new System.Windows.Forms.AutoCompleteStringCollection();
+                var receiverSource = new System.Windows.Forms.AutoCompleteStringCollection();
+
+                var records = DatabaseHelper.GetAllWeighRecords();
+                foreach (var r in records)
+                {
+                    if (!string.IsNullOrWhiteSpace(r.CargoType))
+                        cargoSource.Add(r.CargoType);
+                    if (!string.IsNullOrWhiteSpace(r.DriverName))
+                        driverSource.Add(r.DriverName);
+                    if (!string.IsNullOrWhiteSpace(r.Receiver))
+                        receiverSource.Add(r.Receiver);
+                }
+
+                txtCargo.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+                txtCargo.AutoCompleteSource = AutoCompleteSource.CustomSource;
+                txtCargo.AutoCompleteCustomSource = cargoSource;
+
+                txtDriver.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+                txtDriver.AutoCompleteSource = AutoCompleteSource.CustomSource;
+                txtDriver.AutoCompleteCustomSource = driverSource;
+
+                txtReceiver.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+                txtReceiver.AutoCompleteSource = AutoCompleteSource.CustomSource;
+                txtReceiver.AutoCompleteCustomSource = receiverSource;
+            }
+            catch
+            {
+                // 数据库未初始化时忽略
+            }
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -628,6 +725,9 @@ namespace pism_weigh
                     SecondWeighTime = DateTime.Now,
                     CompleteTime = DateTime.Now,
                     OperatorName = user.userName,
+                    CargoType = txtCargo?.Text?.Trim(),
+                    DriverName = txtDriver?.Text?.Trim(),
+                    Receiver = txtReceiver?.Text?.Trim(),
                     Remark = "[MANUAL_MODE]"
                 };
 
@@ -676,7 +776,10 @@ namespace pism_weigh
                     FirstWeighTime = DateTime.Now,
                     CompleteTime = DateTime.MinValue,
                     Remark = BuildModeRemark(selectedMode),
-                    OperatorName = user.userName
+                    OperatorName = user.userName,
+                    CargoType = txtCargo?.Text?.Trim(),
+                    DriverName = txtDriver?.Text?.Trim(),
+                    Receiver = txtReceiver?.Text?.Trim(),
                 };
 
                 if (!DatabaseHelper.SaveWeighRecord(record))
@@ -804,6 +907,9 @@ namespace pism_weigh
             record.CompleteTime = DateTime.Now;
             record.PrintCount = _printCount;
             record.OperatorName = user.userName;
+            record.CargoType = txtCargo?.Text?.Trim();
+            record.DriverName = txtDriver?.Text?.Trim();
+            record.Receiver = txtReceiver?.Text?.Trim();
             record.Remark = string.Format("PRINTED|SRC_UNIT:{0}", _latestSourceUnit ?? "t");
             record.UpdateTime = DateTime.Now;
 
