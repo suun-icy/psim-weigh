@@ -954,9 +954,8 @@ namespace pism_weigh
                 return;
             }
 
-            bool cargoComeOut = !radioButton3.Checked; // false=购入, true=销售
+            bool cargoComeOut = !radioButton3.Checked;
 
-            _printCount++;
             var record = DatabaseHelper.GetLatestOpenRecordByPlate(cargoPlate);
             if (record == null)
             {
@@ -975,7 +974,6 @@ namespace pism_weigh
             record.FirstWeighTime = record.FirstWeighTime ?? DateTime.Now;
             record.SecondWeighTime = record.SecondWeighTime ?? DateTime.Now;
             record.CompleteTime = DateTime.Now;
-            record.PrintCount = _printCount;
             record.OperatorName = string.IsNullOrWhiteSpace(cboOperator.Text) ? user.userName : cboOperator.Text.Trim();
             record.CargoType = cboCargo.Text.Trim();
             record.DriverName = cboDriver.Text.Trim();
@@ -983,21 +981,20 @@ namespace pism_weigh
             record.Remark = string.Format("PRINTED|SRC_UNIT:{0}", _latestSourceUnit ?? "t");
             record.UpdateTime = DateTime.Now;
 
+            // 先保存，再弹出打印对话框
             if (!DatabaseHelper.SaveWeighRecord(record))
             {
                 MessageBox.Show("保存称重数据失败");
                 return;
             }
 
-            // 打印磅单
-            try
-            {
-                printService.PrintPreviewWithDialog(record, PrintTemplate.WeighSlip240x93);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("打印预览失败：" + ex.Message + "\n\n数据已保存，可稍后重新打印。");
-            }
+            // 打印磅单（与查询界面重打流程一致：选择打印机→预览→打印）
+            if (!printService.PrintPreviewWithDialog(record, PrintTemplate.WeighSlip240x93))
+                return; // 用户取消
+
+            // 打印成功后更新打印次数
+            record.PrintCount = record.PrintCount + 1;
+            DatabaseHelper.SaveWeighRecord(record);
 
             RefreshDropdowns();
             EnsureCurrentPlateInHistory();
