@@ -25,10 +25,20 @@ namespace pism_weigh.Services
         {
             _printDocument = new PrintDocument();
             _printDocument.PrintPage += PrintDocument_PrintPage;
+            _printDocument.QueryPageSettings += PrintDocument_QueryPageSettings;
             _template = PrintTemplate.WeighSlip240x93;
 
             // 设置默认纸张为 24cm×9.31cm
             SetDefaultPaperSize();
+        }
+
+        private void PrintDocument_QueryPageSettings(object sender, QueryPageSettingsEventArgs e)
+        {
+            // 强制每页使用自定义纸张，防止预览内打印时重置为 A4
+            var paperSize = new PaperSize("WeighSlip", 945, 367);
+            paperSize.RawKind = (int)PaperKind.Custom;
+            e.PageSettings.PaperSize = paperSize;
+            e.PageSettings.Margins = new Margins(10, 10, 8, 8);
         }
 
         /// <summary>
