@@ -518,6 +518,76 @@ namespace pism_weigh.Database
         }
 
         /// <summary>
+        /// 组合条件查询称重记录
+        /// </summary>
+        public static List<WeighRecord> SearchRecords(
+            string plateNumber = null,
+            string driverName = null,
+            string cargoType = null,
+            string sender = null,
+            string receiver = null,
+            DateTime? startDate = null,
+            DateTime? endDate = null,
+            WeighStatus? status = null)
+        {
+            var sql = "SELECT * FROM WeighRecords WHERE 1=1";
+            var parameters = new List<SQLiteParameter>();
+
+            if (!string.IsNullOrWhiteSpace(plateNumber))
+            {
+                sql += " AND PlateNumber LIKE @PlateNumber";
+                parameters.Add(new SQLiteParameter("@PlateNumber", "%" + plateNumber.Trim() + "%"));
+            }
+            if (!string.IsNullOrWhiteSpace(driverName))
+            {
+                sql += " AND DriverName LIKE @DriverName";
+                parameters.Add(new SQLiteParameter("@DriverName", "%" + driverName.Trim() + "%"));
+            }
+            if (!string.IsNullOrWhiteSpace(cargoType))
+            {
+                sql += " AND CargoType LIKE @CargoType";
+                parameters.Add(new SQLiteParameter("@CargoType", "%" + cargoType.Trim() + "%"));
+            }
+            if (!string.IsNullOrWhiteSpace(sender))
+            {
+                sql += " AND Sender LIKE @Sender";
+                parameters.Add(new SQLiteParameter("@Sender", "%" + sender.Trim() + "%"));
+            }
+            if (!string.IsNullOrWhiteSpace(receiver))
+            {
+                sql += " AND Receiver LIKE @Receiver";
+                parameters.Add(new SQLiteParameter("@Receiver", "%" + receiver.Trim() + "%"));
+            }
+            if (startDate.HasValue)
+            {
+                sql += " AND CreateTime >= @StartDate";
+                parameters.Add(new SQLiteParameter("@StartDate", startDate.Value));
+            }
+            if (endDate.HasValue)
+            {
+                sql += " AND CreateTime <= @EndDate";
+                parameters.Add(new SQLiteParameter("@EndDate", endDate.Value.AddDays(1)));
+            }
+            if (status.HasValue)
+            {
+                sql += " AND Status = @Status";
+                parameters.Add(new SQLiteParameter("@Status", (int)status.Value));
+            }
+
+            sql += " ORDER BY CreateTime DESC";
+
+            var list = new List<WeighRecord>();
+            var dt = ExecuteQuery(sql, parameters.ToArray());
+
+            foreach (DataRow row in dt.Rows)
+            {
+                list.Add(MapRowToRecord(row));
+            }
+            return list;
+        }
+
+
+        /// <summary>
         /// 审核称重记录
         /// </summary>
         public static bool ReviewWeighRecord(string id, string reviewerId, string reviewerName, bool approved)
@@ -611,6 +681,42 @@ namespace pism_weigh.Database
         {
             var sql = "DELETE FROM WeighRecords WHERE Id = @Id";
             return ExecuteNonQuery(sql, new SQLiteParameter("@Id", id)) > 0;
+        }
+
+        private static WeighRecord MapRowToRecord(DataRow row)
+        {
+            return new WeighRecord
+            {
+                Id = row["Id"].ToString(),
+                PlateNumber = row["PlateNumber"].ToString(),
+                Province = row["Province"].ToString(),
+                PlateCode = row["PlateCode"].ToString(),
+                GrossWeight = Convert.ToDecimal(row["GrossWeight"]),
+                TareWeight = Convert.ToDecimal(row["TareWeight"]),
+                NetWeight = Convert.ToDecimal(row["NetWeight"]),
+                CargoType = row["CargoType"].ToString(),
+                Sender = row["Sender"].ToString(),
+                Receiver = row["Receiver"].ToString(),
+                DriverName = row["DriverName"].ToString(),
+                DriverPhone = row["DriverPhone"].ToString(),
+                BusinessType = (BusinessType)Convert.ToInt32(row["BusinessType"]),
+                Status = (WeighStatus)Convert.ToInt32(row["Status"]),
+                FirstWeighTime = row["FirstWeighTime"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(row["FirstWeighTime"]),
+                SecondWeighTime = row["SecondWeighTime"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(row["SecondWeighTime"]),
+                CompleteTime = Convert.ToDateTime(row["CompleteTime"]),
+                OperatorId = row["OperatorId"].ToString(),
+                OperatorName = row["OperatorName"].ToString(),
+                Remark = row["Remark"].ToString(),
+                PrintCount = Convert.ToInt32(row["PrintCount"]),
+                IsUploaded = Convert.ToInt32(row["IsUploaded"]) == 1,
+                CreateTime = Convert.ToDateTime(row["CreateTime"]),
+                UpdateTime = Convert.ToDateTime(row["UpdateTime"]),
+                Category = row["Category"] == DBNull.Value ? RecordCategory.Valid : (RecordCategory)Convert.ToInt32(row["Category"]),
+                ModifyHistory = row["ModifyHistory"] == DBNull.Value ? null : row["ModifyHistory"].ToString(),
+                ReviewerId = row["ReviewerId"] == DBNull.Value ? null : row["ReviewerId"].ToString(),
+                ReviewerName = row["ReviewerName"] == DBNull.Value ? null : row["ReviewerName"].ToString(),
+                ReviewTime = row["ReviewTime"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(row["ReviewTime"])
+            };
         }
 
         #endregion

@@ -74,6 +74,12 @@
     <Compile Include="Services\ScaleService.cs" />
     <Compile Include="Services\PrintService.cs" />
     <Compile Include="PmsWeightinfo.cs" />
+    <Compile Include="QueryForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="QueryForm.Designer.cs">
+      <DependentUpon>QueryForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="print.cs">
       <SubType>Form</SubType>
     </Compile>

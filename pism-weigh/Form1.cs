@@ -57,6 +57,20 @@ namespace pism_weigh
         {
             InitializeComponent();
             this.FormClosing += Form1_FormClosing;
+            InitQueryButton();
+        }
+
+        private void InitQueryButton()
+        {
+            var btnQuery = new System.Windows.Forms.Button
+            {
+                Text = "查询",
+                Location = new System.Drawing.Point(438, 7),
+                Size = new System.Drawing.Size(65, 28),
+                UseVisualStyleBackColor = true
+            };
+            btnQuery.Click += (s, e) => { new QueryForm().ShowDialog(); };
+            panel3.Controls.Add(btnQuery);
         }
 
         private void Form1_Load(object sender, EventArgs e)
