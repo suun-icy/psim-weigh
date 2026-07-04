@@ -170,9 +170,9 @@ namespace pism_weigh.Services
             {
                 // ===== 第1行：标题（无边框，居中） =====
                 var titleSF = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-                var titleRect = new RectangleF(x, y, tableWidth, 17f);
+                var titleRect = new RectangleF(x, y, tableWidth, 15f);
                 g.DrawString("磅  单", titleFont, Brushes.Black, titleRect, titleSF);
-                y += 17f;
+                y += 15f;
 
                 // ===== 第2行：时间行（无边框）=====
                 var timeText = "时间  " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
@@ -180,7 +180,7 @@ namespace pism_weigh.Services
                 g.DrawString(timeText, timeFont, Brushes.Black, x + 1f, y + 1f);
                 y += timeSize.Height + 2f;
 
-                float rowH = 13f;
+                float rowH = 10f;
 
                 // ===== 第3行：车牌 | 数据 | 毛重 | 数据 =====
                 DrawFourColRow(g, pen, labelFont, valueFont, x, y, col1W, col2W, col3W, col4W, rowH,
