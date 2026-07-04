@@ -187,15 +187,35 @@ namespace pism_weigh
                     if (!string.IsNullOrWhiteSpace(r.OperatorName)) operatorSet.Add(r.OperatorName);
                 }
 
+                cboCargo.Items.Clear();
                 cboCargo.Items.AddRange(cargoSet.OrderBy(x => x).ToArray());
+                cboDriver.Items.Clear();
                 cboDriver.Items.AddRange(driverSet.OrderBy(x => x).ToArray());
+                cboReceiver.Items.Clear();
                 cboReceiver.Items.AddRange(receiverSet.OrderBy(x => x).ToArray());
+                cboOperator.Items.Clear();
                 cboOperator.Items.AddRange(operatorSet.OrderBy(x => x).ToArray());
             }
             catch
             {
                 // 数据库未初始化时忽略
             }
+        }
+
+        private void RefreshDropdowns()
+        {
+            var selectedCargo = cboCargo.Text;
+            var selectedDriver = cboDriver.Text;
+            var selectedReceiver = cboReceiver.Text;
+            var selectedOperator = cboOperator.Text;
+
+            PopulateDropdowns();
+
+            // 恢复选中的文本
+            try { cboCargo.Text = selectedCargo; } catch { }
+            try { cboDriver.Text = selectedDriver; } catch { }
+            try { cboReceiver.Text = selectedReceiver; } catch { }
+            try { cboOperator.Text = selectedOperator; } catch { }
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -766,6 +786,7 @@ namespace pism_weigh
                 }
 
                 textBox3.Text = manualNetWeight.ToString("0.###");
+                RefreshDropdowns();
                 MessageBox.Show("称重完成，净重：" + textBox3.Text + " 吨（已保存）");
                 return;
             }
@@ -882,6 +903,7 @@ namespace pism_weigh
             textBox1.Text = grossWeight.ToString("0.###");
             textBox2.Text = tareWeight.ToString("0.###");
             textBox3.Text = netWeightValue.ToString("0.###");
+            RefreshDropdowns();
             MessageBox.Show("称重完成并已保存。");
         }
 
@@ -957,6 +979,7 @@ namespace pism_weigh
                 MessageBox.Show("打印预览失败：" + ex.Message + "\n\n数据已保存，可稍后重新打印。");
             }
 
+            RefreshDropdowns();
             EnsureCurrentPlateInHistory();
         }
 
