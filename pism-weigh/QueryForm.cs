@@ -19,6 +19,37 @@ namespace pism_weigh
             InitializeComponent();
             dgvRecords.AutoGenerateColumns = true;
             dgvRecords.DataBindingComplete += DgvRecords_DataBindingComplete;
+            dgvRecords.CellFormatting += DgvRecords_CellFormatting;
+        }
+
+        private void DgvRecords_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (e.Value == null) return;
+
+            var colName = dgvRecords.Columns[e.ColumnIndex].DataPropertyName;
+
+            if (colName == "BusinessType")
+            {
+                switch ((Models.BusinessType)(int)e.Value)
+                {
+                    case Models.BusinessType.PurchaseIn: e.Value = "采购入库"; break;
+                    case Models.BusinessType.SalesOut: e.Value = "销售出库"; break;
+                    case Models.BusinessType.Transfer: e.Value = "内部调拨"; break;
+                    default: e.Value = "其他"; break;
+                }
+                e.FormattingApplied = true;
+            }
+            else if (colName == "Status")
+            {
+                switch ((Models.WeighStatus)(int)e.Value)
+                {
+                    case Models.WeighStatus.FirstWeigh: e.Value = "首次称重"; break;
+                    case Models.WeighStatus.SecondWeigh: e.Value = "二次称重"; break;
+                    case Models.WeighStatus.Completed: e.Value = "已完成"; break;
+                    case Models.WeighStatus.Cancelled: e.Value = "已取消"; break;
+                }
+                e.FormattingApplied = true;
+            }
         }
 
         private void DgvRecords_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
