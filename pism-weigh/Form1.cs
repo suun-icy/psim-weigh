@@ -52,9 +52,10 @@ namespace pism_weigh
 		private List<string> plateHistoryCache;
         private string _latestSourceUnit = "t";
         private AppConfig _config;
-        private System.Windows.Forms.TextBox txtCargo;
-        private System.Windows.Forms.TextBox txtDriver;
-        private System.Windows.Forms.TextBox txtReceiver;
+        private System.Windows.Forms.ComboBox cboCargo;
+        private System.Windows.Forms.ComboBox cboDriver;
+        private System.Windows.Forms.ComboBox cboReceiver;
+        private System.Windows.Forms.ComboBox cboOperator;
 
 		public Form1()
         {
@@ -65,14 +66,11 @@ namespace pism_weigh
 
         private void InitExtraControls()
         {
-            // 扩大 panel3 以容纳新字段
-            panel3.Height = 290;
-            this.Height = 580;
+            panel3.Height = 310;
+            this.Height = 600;
             panel6.Top = panel3.Bottom + 5;
 
-            // ===== 布局优化：重排控件位置 =====
-
-            // 右侧按钮列（统一靠右对齐）
+            // 右侧按钮列
             button2.Text = "称取重车";
             button2.Location = new System.Drawing.Point(380, 8);
             button2.Size = new System.Drawing.Size(90, 32);
@@ -93,122 +91,106 @@ namespace pism_weigh
             button7.Size = new System.Drawing.Size(185, 45);
             button7.Font = new System.Drawing.Font("Microsoft YaHei UI", 12F, System.Drawing.FontStyle.Bold);
 
-            // 称重模式下拉框 - 移到进销行右侧
             comboBox8.Location = new System.Drawing.Point(270, 140);
             comboBox8.Size = new System.Drawing.Size(110, 24);
 
-            // 车牌历史 - 移到右下角
-            comboBoxPlateHistory.Location = new System.Drawing.Point(340, 220);
+            comboBoxPlateHistory.Location = new System.Drawing.Point(340, 245);
             comboBoxPlateHistory.Size = new System.Drawing.Size(225, 24);
 
-            // 手动模式及提示
-            checkBoxManualMode.Location = new System.Drawing.Point(10, 255);
-            labelManualTip.Location = new System.Drawing.Point(90, 257);
+            checkBoxManualMode.Location = new System.Drawing.Point(10, 280);
+            labelManualTip.Location = new System.Drawing.Point(90, 282);
 
-            // ===== 新增字段 =====
+            // ===== 新增字段 (ComboBox 替代 TextBox) =====
             // 运输内容
-            var lblCargo = new System.Windows.Forms.Label
-            {
-                Text = "运输内容", AutoSize = true,
-                Location = new System.Drawing.Point(8, 170),
-                Font = new System.Drawing.Font("Microsoft YaHei UI", 9F)
-            };
+            var lblCargo = CreateLabel("运输内容", 8, 170);
+            cboCargo = CreateDropDown(81, 167, 145);
             panel3.Controls.Add(lblCargo);
-
-            txtCargo = new System.Windows.Forms.TextBox
-            {
-                Location = new System.Drawing.Point(81, 167),
-                Size = new System.Drawing.Size(145, 23),
-                Font = new System.Drawing.Font("Microsoft YaHei UI", 9F)
-            };
-            panel3.Controls.Add(txtCargo);
-
-            // 司机
-            var lblDriver = new System.Windows.Forms.Label
-            {
-                Text = "司机", AutoSize = true,
-                Location = new System.Drawing.Point(8, 200)
-            };
-            panel3.Controls.Add(lblDriver);
-
-            txtDriver = new System.Windows.Forms.TextBox
-            {
-                Location = new System.Drawing.Point(81, 197),
-                Size = new System.Drawing.Size(145, 23),
-                Font = new System.Drawing.Font("Microsoft YaHei UI", 9F)
-            };
-            panel3.Controls.Add(txtDriver);
+            panel3.Controls.Add(cboCargo);
 
             // 收货单位
-            var lblReceiver = new System.Windows.Forms.Label
-            {
-                Text = "收货单位", AutoSize = true,
-                Location = new System.Drawing.Point(240, 170)
-            };
+            var lblReceiver = CreateLabel("收货单位", 240, 170);
+            cboReceiver = CreateDropDown(312, 167, 253);
             panel3.Controls.Add(lblReceiver);
+            panel3.Controls.Add(cboReceiver);
 
-            txtReceiver = new System.Windows.Forms.TextBox
-            {
-                Location = new System.Drawing.Point(312, 167),
-                Size = new System.Drawing.Size(253, 23),
-                Font = new System.Drawing.Font("Microsoft YaHei UI", 9F)
-            };
-            panel3.Controls.Add(txtReceiver);
+            // 司机
+            var lblDriver = CreateLabel("司机", 8, 200);
+            cboDriver = CreateDropDown(81, 197, 145);
+            panel3.Controls.Add(lblDriver);
+            panel3.Controls.Add(cboDriver);
+
+            // 司磅员
+            var lblOperator = CreateLabel("司磅员", 240, 200);
+            cboOperator = CreateDropDown(312, 197, 145);
+            panel3.Controls.Add(lblOperator);
+            panel3.Controls.Add(cboOperator);
 
             // 历史车牌标签
-            var lblPlateHistory = new System.Windows.Forms.Label
-            {
-                Text = "历史车牌", AutoSize = true,
-                Location = new System.Drawing.Point(278, 223)
-            };
+            var lblPlateHistory = CreateLabel("历史车牌", 278, 248);
             panel3.Controls.Add(lblPlateHistory);
 
-            // "查询"按钮 - 右下角
+            // 查询按钮
             var btnQuery = new System.Windows.Forms.Button
             {
                 Text = "查询记录",
-                Location = new System.Drawing.Point(390, 252),
-                Size = new System.Drawing.Size(90, 28),
-                Font = new System.Drawing.Font("Microsoft YaHei UI", 9F),
+                Location = new System.Drawing.Point(490, 278),
+                Size = new System.Drawing.Size(75, 25),
+                Font = new System.Drawing.Font("Microsoft YaHei UI", 8F),
                 UseVisualStyleBackColor = true
             };
             btnQuery.Click += (s, e) => { new QueryForm().ShowDialog(); };
             panel3.Controls.Add(btnQuery);
 
-            // ===== 设置 AutoComplete =====
-            SetupAutoComplete();
+            // 填充下拉数据
+            PopulateDropdowns();
         }
 
-        private void SetupAutoComplete()
+        private System.Windows.Forms.Label CreateLabel(string text, int x, int y)
+        {
+            return new System.Windows.Forms.Label
+            {
+                Text = text, AutoSize = true,
+                Location = new System.Drawing.Point(x, y),
+                Font = new System.Drawing.Font("Microsoft YaHei UI", 9F)
+            };
+        }
+
+        private System.Windows.Forms.ComboBox CreateDropDown(int x, int y, int width)
+        {
+            return new System.Windows.Forms.ComboBox
+            {
+                Location = new System.Drawing.Point(x, y),
+                Size = new System.Drawing.Size(width, 24),
+                Font = new System.Drawing.Font("Microsoft YaHei UI", 9F),
+                DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDown,
+                AutoCompleteMode = AutoCompleteMode.SuggestAppend,
+                AutoCompleteSource = AutoCompleteSource.ListItems
+            };
+        }
+
+        private void PopulateDropdowns()
         {
             try
             {
-                var cargoSource = new System.Windows.Forms.AutoCompleteStringCollection();
-                var driverSource = new System.Windows.Forms.AutoCompleteStringCollection();
-                var receiverSource = new System.Windows.Forms.AutoCompleteStringCollection();
-
                 var records = DatabaseHelper.GetAllWeighRecords();
+
+                var cargoSet = new HashSet<string>();
+                var driverSet = new HashSet<string>();
+                var receiverSet = new HashSet<string>();
+                var operatorSet = new HashSet<string>();
+
                 foreach (var r in records)
                 {
-                    if (!string.IsNullOrWhiteSpace(r.CargoType))
-                        cargoSource.Add(r.CargoType);
-                    if (!string.IsNullOrWhiteSpace(r.DriverName))
-                        driverSource.Add(r.DriverName);
-                    if (!string.IsNullOrWhiteSpace(r.Receiver))
-                        receiverSource.Add(r.Receiver);
+                    if (!string.IsNullOrWhiteSpace(r.CargoType)) cargoSet.Add(r.CargoType);
+                    if (!string.IsNullOrWhiteSpace(r.DriverName)) driverSet.Add(r.DriverName);
+                    if (!string.IsNullOrWhiteSpace(r.Receiver)) receiverSet.Add(r.Receiver);
+                    if (!string.IsNullOrWhiteSpace(r.OperatorName)) operatorSet.Add(r.OperatorName);
                 }
 
-                txtCargo.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
-                txtCargo.AutoCompleteSource = AutoCompleteSource.CustomSource;
-                txtCargo.AutoCompleteCustomSource = cargoSource;
-
-                txtDriver.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
-                txtDriver.AutoCompleteSource = AutoCompleteSource.CustomSource;
-                txtDriver.AutoCompleteCustomSource = driverSource;
-
-                txtReceiver.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
-                txtReceiver.AutoCompleteSource = AutoCompleteSource.CustomSource;
-                txtReceiver.AutoCompleteCustomSource = receiverSource;
+                cboCargo.Items.AddRange(cargoSet.OrderBy(x => x).ToArray());
+                cboDriver.Items.AddRange(driverSet.OrderBy(x => x).ToArray());
+                cboReceiver.Items.AddRange(receiverSet.OrderBy(x => x).ToArray());
+                cboOperator.Items.AddRange(operatorSet.OrderBy(x => x).ToArray());
             }
             catch
             {
@@ -770,10 +752,10 @@ namespace pism_weigh
                     FirstWeighTime = DateTime.Now,
                     SecondWeighTime = DateTime.Now,
                     CompleteTime = DateTime.Now,
-                    OperatorName = user.userName,
-                    CargoType = txtCargo?.Text?.Trim(),
-                    DriverName = txtDriver?.Text?.Trim(),
-                    Receiver = txtReceiver?.Text?.Trim(),
+                    OperatorName = string.IsNullOrWhiteSpace(cboOperator.Text) ? user.userName : cboOperator.Text.Trim(),
+                    CargoType = cboCargo.Text.Trim(),
+                    DriverName = cboDriver.Text.Trim(),
+                    Receiver = cboReceiver.Text.Trim(),
                     Remark = "[MANUAL_MODE]"
                 };
 
@@ -822,10 +804,10 @@ namespace pism_weigh
                     FirstWeighTime = DateTime.Now,
                     CompleteTime = DateTime.MinValue,
                     Remark = BuildModeRemark(selectedMode),
-                    OperatorName = user.userName,
-                    CargoType = txtCargo?.Text?.Trim(),
-                    DriverName = txtDriver?.Text?.Trim(),
-                    Receiver = txtReceiver?.Text?.Trim(),
+                    OperatorName = string.IsNullOrWhiteSpace(cboOperator.Text) ? user.userName : cboOperator.Text.Trim(),
+                    CargoType = cboCargo.Text.Trim(),
+                    DriverName = cboDriver.Text.Trim(),
+                    Receiver = cboReceiver.Text.Trim(),
                 };
 
                 if (!DatabaseHelper.SaveWeighRecord(record))
@@ -952,10 +934,10 @@ namespace pism_weigh
             record.SecondWeighTime = record.SecondWeighTime ?? DateTime.Now;
             record.CompleteTime = DateTime.Now;
             record.PrintCount = _printCount;
-            record.OperatorName = user.userName;
-            record.CargoType = txtCargo?.Text?.Trim();
-            record.DriverName = txtDriver?.Text?.Trim();
-            record.Receiver = txtReceiver?.Text?.Trim();
+            record.OperatorName = string.IsNullOrWhiteSpace(cboOperator.Text) ? user.userName : cboOperator.Text.Trim();
+            record.CargoType = cboCargo.Text.Trim();
+            record.DriverName = cboDriver.Text.Trim();
+            record.Receiver = cboReceiver.Text.Trim();
             record.Remark = string.Format("PRINTED|SRC_UNIT:{0}", _latestSourceUnit ?? "t");
             record.UpdateTime = DateTime.Now;
 
