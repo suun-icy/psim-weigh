@@ -102,6 +102,13 @@
     <Compile Include="VehicleForm.Designer.cs">
       <DependentUpon>VehicleForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Models\TareRecord.cs" />
+    <Compile Include="TareManageForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TareManageForm.Designer.cs">
+      <DependentUpon>TareManageForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Models\Vehicle.cs" />
     <Compile Include="print.cs">
       <SubType>Form</SubType>

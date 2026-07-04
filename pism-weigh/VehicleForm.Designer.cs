@@ -129,7 +129,11 @@ namespace pism_weigh
             btnDelete.Click += btnDelete_Click;
             groupEdit.Controls.Add(btnDelete);
 
-            var btnClear = new Button { Text = "清除", Location = new Point(200, y), Size = new Size(70, 32), UseVisualStyleBackColor = true };
+            var btnTare = new Button { Text = "皮重管理", Location = new Point(200, y), Size = new Size(80, 32), UseVisualStyleBackColor = true };
+            btnTare.Click += (s, e) => { if (!string.IsNullOrWhiteSpace(txtPlate.Text)) new TareManageForm(txtPlate.Text.Trim()).ShowDialog(); };
+            groupEdit.Controls.Add(btnTare);
+
+            var btnClear = new Button { Text = "清除", Location = new Point(290, y), Size = new Size(70, 32), UseVisualStyleBackColor = true };
             btnClear.Click += (s, e) => { dgvVehicles.ClearSelection(); ClearEdit(); };
             groupEdit.Controls.Add(btnClear);
 

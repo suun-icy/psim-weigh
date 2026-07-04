@@ -57,6 +57,8 @@ namespace pism_weigh
         private System.Windows.Forms.ComboBox cboReceiver;
         private System.Windows.Forms.ComboBox cboSender;
         private System.Windows.Forms.ComboBox cboOperator;
+        private System.Windows.Forms.CheckBox chkUsePresetTare;
+        private System.Windows.Forms.Label lblPresetTare;
 
 		public Form1()
         {
@@ -100,6 +102,29 @@ namespace pism_weigh
 
             checkBoxManualMode.Location = new System.Drawing.Point(10, 310);
             labelManualTip.Location = new System.Drawing.Point(90, 312);
+
+            // 预设皮重
+            chkUsePresetTare = new System.Windows.Forms.CheckBox
+            {
+                Text = "使用预设皮重",
+                Location = new System.Drawing.Point(180, 310),
+                Size = new System.Drawing.Size(110, 20),
+                Font = new System.Drawing.Font("Microsoft YaHei UI", 8F),
+                Visible = false
+            };
+            chkUsePresetTare.CheckedChanged += chkUsePresetTare_CheckedChanged;
+            panel3.Controls.Add(chkUsePresetTare);
+
+            lblPresetTare = new System.Windows.Forms.Label
+            {
+                Text = "",
+                Location = new System.Drawing.Point(295, 312),
+                Size = new System.Drawing.Size(200, 16),
+                Font = new System.Drawing.Font("Microsoft YaHei UI", 8F, System.Drawing.FontStyle.Bold),
+                ForeColor = System.Drawing.Color.DarkGreen,
+                Visible = false
+            };
+            panel3.Controls.Add(lblPresetTare);
 
             // ===== 新增字段 (ComboBox 替代 TextBox) =====
             // 运输内容
@@ -799,14 +824,32 @@ namespace pism_weigh
                     MessageBox.Show("重车重量不能为负数");
                     return;
                 }
-                if (!TryParseWeightText(textBox2.Text, "空车", out double manualTare))
+
+                double manualTare;
+                string tareSource = "";
+                if (chkUsePresetTare.Checked)
                 {
-                    return;
+                    // 使用预设皮重
+                    var presetTare = DatabaseHelper.GetLatestTare(manualPlate);
+                    if (presetTare == null)
+                    {
+                        MessageBox.Show("该车牌无预设皮重，请先录入。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+                    manualTare = (double)presetTare.TareWeight;
+                    tareSource = "[PRESET_TARE]";
                 }
-                if (manualTare < 0)
+                else
                 {
-                    MessageBox.Show("空车重量不能为负数");
-                    return;
+                    if (!TryParseWeightText(textBox2.Text, "空车", out manualTare))
+                    {
+                        return;
+                    }
+                    if (manualTare < 0)
+                    {
+                        MessageBox.Show("空车重量不能为负数");
+                        return;
+                    }
                 }
 
                 var manualNetWeight = manualGross - manualTare;
@@ -842,7 +885,7 @@ namespace pism_weigh
                     DriverName = cboDriver.Text.Trim(),
                     Receiver = cboReceiver.Text.Trim(),
                     Sender = cboSender.Text.Trim(),
-                    Remark = "[MANUAL_MODE]"
+                    Remark = "[MANUAL_MODE]" + tareSource
                 };
 
                 if (!DatabaseHelper.SaveWeighRecord(manualRecord))
@@ -1289,7 +1332,50 @@ namespace pism_weigh
 			{
 				// 读取历史记录失败时忽略，避免影响称重流程
 			}
+
+            // 查询预设皮重
+            CheckPresetTare(selectedPlate);
 		}
+
+        private void CheckPresetTare(string plateNumber)
+        {
+            try
+            {
+                var tare = DatabaseHelper.GetLatestTare(plateNumber);
+                if (tare != null)
+                {
+                    lblPresetTare.Text = "预设皮重: " + tare.TareWeight.ToString("F0") + " kg";
+                    lblPresetTare.Visible = true;
+                    chkUsePresetTare.Visible = true;
+                    chkUsePresetTare.Checked = false; // 默认不勾选，让用户主动选择
+                    labelManualTip.Location = new System.Drawing.Point(90, 312);
+                }
+                else
+                {
+                    lblPresetTare.Visible = false;
+                    chkUsePresetTare.Visible = false;
+                    chkUsePresetTare.Checked = false;
+                }
+            }
+            catch { }
+        }
+
+        private void chkUsePresetTare_CheckedChanged(object sender, EventArgs e)
+        {
+            // 使用预设皮重时禁用空车称重按钮，提示用户无需二次称重
+            bool usePreset = chkUsePresetTare.Checked;
+            if (usePreset && !checkBoxManualMode.Checked)
+            {
+                button4.Enabled = false;
+                comboBox8.SelectedIndex = 0; // 强制先毛后皮模式
+                comboBox8.Enabled = false;
+            }
+            else
+            {
+                button4.Enabled = true;
+                comboBox8.Enabled = true;
+            }
+        }
 
 		private void EnsureCurrentPlateInHistory()
 		{

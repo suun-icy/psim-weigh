@@ -145,6 +145,23 @@ namespace pism_weigh.Database
                     string createVehicleIdx = "CREATE INDEX IF NOT EXISTS idx_vehicle_plate ON Vehicles(PlateNumber)";
                     ExecuteNonQuery(createVehicleIdx);
 
+                    // 创建车辆皮重记录表
+                    string createTareTable = @"
+                        CREATE TABLE IF NOT EXISTS VehicleTareRecords (
+                            Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            PlateNumber TEXT NOT NULL,
+                            TareWeight DECIMAL(18,2) NOT NULL,
+                            WeighDate DATETIME,
+                            Source TEXT DEFAULT 'Manual',
+                            OperatorName TEXT,
+                            Remark TEXT,
+                            CreateTime DATETIME DEFAULT CURRENT_TIMESTAMP
+                        )";
+                    ExecuteNonQuery(createTareTable);
+
+                    string createTareIdx = "CREATE INDEX IF NOT EXISTS idx_tare_plate ON VehicleTareRecords(PlateNumber)";
+                    ExecuteNonQuery(createTareIdx);
+
                     string createRawWeightTable = @"
                         CREATE TABLE IF NOT EXISTS RawWeightLogs (
                             Id TEXT PRIMARY KEY,
@@ -973,6 +990,84 @@ namespace pism_weigh.Database
             try
             {
                 var sql = "DELETE FROM Vehicles WHERE Id = @Id";
+                return ExecuteNonQuery(sql, new SQLiteParameter("@Id", id)) > 0;
+            }
+            catch { return false; }
+        }
+
+        // ===== 车辆皮重管理 =====
+
+        public static bool SaveTareRecord(string plateNumber, decimal tareWeight, string source, string operatorName, string remark)
+        {
+            try
+            {
+                var sql = "INSERT INTO VehicleTareRecords (PlateNumber, TareWeight, WeighDate, Source, OperatorName, Remark) VALUES (@Plate, @Weight, @Date, @Source, @Op, @Remark)";
+                return ExecuteNonQuery(sql,
+                    new SQLiteParameter("@Plate", plateNumber),
+                    new SQLiteParameter("@Weight", tareWeight),
+                    new SQLiteParameter("@Date", DateTime.Now),
+                    new SQLiteParameter("@Source", source ?? "Manual"),
+                    new SQLiteParameter("@Op", (object)operatorName ?? DBNull.Value),
+                    new SQLiteParameter("@Remark", (object)remark ?? DBNull.Value)
+                ) > 0;
+            }
+            catch { return false; }
+        }
+
+        public static List<TareRecord> GetTareRecords(string plateNumber)
+        {
+            var list = new List<TareRecord>();
+            try
+            {
+                var sql = "SELECT * FROM VehicleTareRecords WHERE PlateNumber = @Plate ORDER BY CreateTime DESC LIMIT 20";
+                var dt = ExecuteQuery(sql, new SQLiteParameter("@Plate", plateNumber));
+                foreach (DataRow row in dt.Rows)
+                {
+                    list.Add(new TareRecord
+                    {
+                        Id = Convert.ToInt32(row["Id"]),
+                        PlateNumber = row["PlateNumber"].ToString(),
+                        TareWeight = Convert.ToDecimal(row["TareWeight"]),
+                        WeighDate = row["WeighDate"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(row["WeighDate"]),
+                        Source = row["Source"] == DBNull.Value ? "Manual" : row["Source"].ToString(),
+                        OperatorName = row["OperatorName"] == DBNull.Value ? null : row["OperatorName"].ToString(),
+                        Remark = row["Remark"] == DBNull.Value ? null : row["Remark"].ToString(),
+                        CreateTime = Convert.ToDateTime(row["CreateTime"])
+                    });
+                }
+            }
+            catch { }
+            return list;
+        }
+
+        public static TareRecord GetLatestTare(string plateNumber)
+        {
+            try
+            {
+                var sql = "SELECT * FROM VehicleTareRecords WHERE PlateNumber = @Plate ORDER BY CreateTime DESC LIMIT 1";
+                var dt = ExecuteQuery(sql, new SQLiteParameter("@Plate", plateNumber));
+                if (dt.Rows.Count == 0) return null;
+                var row = dt.Rows[0];
+                return new TareRecord
+                {
+                    Id = Convert.ToInt32(row["Id"]),
+                    PlateNumber = row["PlateNumber"].ToString(),
+                    TareWeight = Convert.ToDecimal(row["TareWeight"]),
+                    WeighDate = row["WeighDate"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(row["WeighDate"]),
+                    Source = row["Source"] == DBNull.Value ? "Manual" : row["Source"].ToString(),
+                    OperatorName = row["OperatorName"] == DBNull.Value ? null : row["OperatorName"].ToString(),
+                    Remark = row["Remark"] == DBNull.Value ? null : row["Remark"].ToString(),
+                    CreateTime = Convert.ToDateTime(row["CreateTime"])
+                };
+            }
+            catch { return null; }
+        }
+
+        public static bool DeleteTareRecord(int id)
+        {
+            try
+            {
+                var sql = "DELETE FROM VehicleTareRecords WHERE Id = @Id";
                 return ExecuteNonQuery(sql, new SQLiteParameter("@Id", id)) > 0;
             }
             catch { return false; }
