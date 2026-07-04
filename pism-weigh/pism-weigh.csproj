@@ -96,6 +96,13 @@
     <Compile Include="RecordEditForm.Designer.cs">
       <DependentUpon>RecordEditForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="VehicleForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="VehicleForm.Designer.cs">
+      <DependentUpon>VehicleForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Vehicle.cs" />
     <Compile Include="print.cs">
       <SubType>Form</SubType>
     </Compile>

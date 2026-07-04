@@ -117,6 +117,34 @@ namespace pism_weigh.Database
                         )";
                     ExecuteNonQuery(createBasicDataTable);
 
+                    // 创建车辆档案表
+                    string createVehicleTable = @"
+                        CREATE TABLE IF NOT EXISTS Vehicles (
+                            Id TEXT PRIMARY KEY,
+                            PlateNumber TEXT NOT NULL UNIQUE,
+                            Province TEXT,
+                            PlateCode TEXT,
+                            VehicleType TEXT,
+                            BrandModel TEXT,
+                            RatedLoad DECIMAL(18,2),
+                            CurbWeight DECIMAL(18,2),
+                            OwnerName TEXT,
+                            OwnerPhone TEXT,
+                            OwnerUnit TEXT,
+                            FuelType TEXT,
+                            EmissionStandard TEXT,
+                            RegisteredDate DATETIME,
+                            Status TEXT DEFAULT 'Active',
+                            PhotoPath TEXT,
+                            Remark TEXT,
+                            CreateTime DATETIME DEFAULT CURRENT_TIMESTAMP,
+                            UpdateTime DATETIME DEFAULT CURRENT_TIMESTAMP
+                        )";
+                    ExecuteNonQuery(createVehicleTable);
+
+                    string createVehicleIdx = "CREATE INDEX IF NOT EXISTS idx_vehicle_plate ON Vehicles(PlateNumber)";
+                    ExecuteNonQuery(createVehicleIdx);
+
                     string createRawWeightTable = @"
                         CREATE TABLE IF NOT EXISTS RawWeightLogs (
                             Id TEXT PRIMARY KEY,
@@ -797,6 +825,157 @@ namespace pism_weigh.Database
                 }
             }
             catch { }
+        }
+
+        // ===== 车辆档案管理 =====
+
+        public static bool SaveVehicle(Vehicle vehicle)
+        {
+            try
+            {
+                var sql = @"
+                    INSERT OR REPLACE INTO Vehicles 
+                    (Id, PlateNumber, Province, PlateCode, VehicleType, BrandModel,
+                     RatedLoad, CurbWeight, OwnerName, OwnerPhone, OwnerUnit,
+                     FuelType, EmissionStandard, RegisteredDate, Status, PhotoPath,
+                     Remark, CreateTime, UpdateTime)
+                    VALUES
+                    (@Id, @PlateNumber, @Province, @PlateCode, @VehicleType, @BrandModel,
+                     @RatedLoad, @CurbWeight, @OwnerName, @OwnerPhone, @OwnerUnit,
+                     @FuelType, @EmissionStandard, @RegisteredDate, @Status, @PhotoPath,
+                     @Remark, @CreateTime, @UpdateTime)";
+                return ExecuteNonQuery(sql,
+                    new SQLiteParameter("@Id", vehicle.Id),
+                    new SQLiteParameter("@PlateNumber", vehicle.PlateNumber),
+                    new SQLiteParameter("@Province", (object)vehicle.Province ?? DBNull.Value),
+                    new SQLiteParameter("@PlateCode", (object)vehicle.PlateCode ?? DBNull.Value),
+                    new SQLiteParameter("@VehicleType", (object)vehicle.VehicleType ?? DBNull.Value),
+                    new SQLiteParameter("@BrandModel", (object)vehicle.BrandModel ?? DBNull.Value),
+                    new SQLiteParameter("@RatedLoad", vehicle.RatedLoad),
+                    new SQLiteParameter("@CurbWeight", vehicle.CurbWeight),
+                    new SQLiteParameter("@OwnerName", (object)vehicle.OwnerName ?? DBNull.Value),
+                    new SQLiteParameter("@OwnerPhone", (object)vehicle.OwnerPhone ?? DBNull.Value),
+                    new SQLiteParameter("@OwnerUnit", (object)vehicle.OwnerUnit ?? DBNull.Value),
+                    new SQLiteParameter("@FuelType", (object)vehicle.FuelType ?? DBNull.Value),
+                    new SQLiteParameter("@EmissionStandard", (object)vehicle.EmissionStandard ?? DBNull.Value),
+                    new SQLiteParameter("@RegisteredDate", (object)vehicle.RegisteredDate ?? DBNull.Value),
+                    new SQLiteParameter("@Status", vehicle.Status ?? "Active"),
+                    new SQLiteParameter("@PhotoPath", (object)vehicle.PhotoPath ?? DBNull.Value),
+                    new SQLiteParameter("@Remark", (object)vehicle.Remark ?? DBNull.Value),
+                    new SQLiteParameter("@CreateTime", vehicle.CreateTime),
+                    new SQLiteParameter("@UpdateTime", DateTime.Now)
+                ) > 0;
+            }
+            catch { return false; }
+        }
+
+        public static List<Vehicle> GetAllVehicles()
+        {
+            var list = new List<Vehicle>();
+            try
+            {
+                var dt = ExecuteQuery("SELECT * FROM Vehicles ORDER BY PlateNumber");
+                foreach (DataRow row in dt.Rows)
+                {
+                    list.Add(new Vehicle
+                    {
+                        Id = row["Id"].ToString(),
+                        PlateNumber = row["PlateNumber"].ToString(),
+                        Province = row["Province"] == DBNull.Value ? null : row["Province"].ToString(),
+                        PlateCode = row["PlateCode"] == DBNull.Value ? null : row["PlateCode"].ToString(),
+                        VehicleType = row["VehicleType"] == DBNull.Value ? null : row["VehicleType"].ToString(),
+                        BrandModel = row["BrandModel"] == DBNull.Value ? null : row["BrandModel"].ToString(),
+                        RatedLoad = row["RatedLoad"] == DBNull.Value ? 0 : Convert.ToDecimal(row["RatedLoad"]),
+                        CurbWeight = row["CurbWeight"] == DBNull.Value ? 0 : Convert.ToDecimal(row["CurbWeight"]),
+                        OwnerName = row["OwnerName"] == DBNull.Value ? null : row["OwnerName"].ToString(),
+                        OwnerPhone = row["OwnerPhone"] == DBNull.Value ? null : row["OwnerPhone"].ToString(),
+                        OwnerUnit = row["OwnerUnit"] == DBNull.Value ? null : row["OwnerUnit"].ToString(),
+                        FuelType = row["FuelType"] == DBNull.Value ? null : row["FuelType"].ToString(),
+                        EmissionStandard = row["EmissionStandard"] == DBNull.Value ? null : row["EmissionStandard"].ToString(),
+                        RegisteredDate = row["RegisteredDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(row["RegisteredDate"]),
+                        Status = row["Status"] == DBNull.Value ? "Active" : row["Status"].ToString(),
+                        PhotoPath = row["PhotoPath"] == DBNull.Value ? null : row["PhotoPath"].ToString(),
+                        Remark = row["Remark"] == DBNull.Value ? null : row["Remark"].ToString(),
+                        CreateTime = Convert.ToDateTime(row["CreateTime"]),
+                        UpdateTime = Convert.ToDateTime(row["UpdateTime"])
+                    });
+                }
+            }
+            catch { }
+            return list;
+        }
+
+        public static List<Vehicle> SearchVehicles(string keyword)
+        {
+            var list = new List<Vehicle>();
+            try
+            {
+                var sql = "SELECT * FROM Vehicles WHERE PlateNumber LIKE @Keyword OR OwnerName LIKE @Keyword OR OwnerUnit LIKE @Keyword ORDER BY PlateNumber";
+                var dt = ExecuteQuery(sql, new SQLiteParameter("@Keyword", "%" + (keyword ?? "") + "%"));
+                foreach (DataRow row in dt.Rows)
+                {
+                    list.Add(new Vehicle
+                    {
+                        Id = row["Id"].ToString(),
+                        PlateNumber = row["PlateNumber"].ToString(),
+                        Province = row["Province"] == DBNull.Value ? null : row["Province"].ToString(),
+                        PlateCode = row["PlateCode"] == DBNull.Value ? null : row["PlateCode"].ToString(),
+                        VehicleType = row["VehicleType"] == DBNull.Value ? null : row["VehicleType"].ToString(),
+                        BrandModel = row["BrandModel"] == DBNull.Value ? null : row["BrandModel"].ToString(),
+                        RatedLoad = row["RatedLoad"] == DBNull.Value ? 0 : Convert.ToDecimal(row["RatedLoad"]),
+                        CurbWeight = row["CurbWeight"] == DBNull.Value ? 0 : Convert.ToDecimal(row["CurbWeight"]),
+                        OwnerName = row["OwnerName"] == DBNull.Value ? null : row["OwnerName"].ToString(),
+                        OwnerPhone = row["OwnerPhone"] == DBNull.Value ? null : row["OwnerPhone"].ToString(),
+                        OwnerUnit = row["OwnerUnit"] == DBNull.Value ? null : row["OwnerUnit"].ToString(),
+                        Status = row["Status"] == DBNull.Value ? "Active" : row["Status"].ToString(),
+                        Remark = row["Remark"] == DBNull.Value ? null : row["Remark"].ToString(),
+                        CreateTime = Convert.ToDateTime(row["CreateTime"]),
+                        UpdateTime = Convert.ToDateTime(row["UpdateTime"])
+                    });
+                }
+            }
+            catch { }
+            return list;
+        }
+
+        public static Vehicle GetVehicleByPlate(string plateNumber)
+        {
+            try
+            {
+                var sql = "SELECT * FROM Vehicles WHERE PlateNumber = @PlateNumber";
+                var dt = ExecuteQuery(sql, new SQLiteParameter("@PlateNumber", plateNumber));
+                if (dt.Rows.Count == 0) return null;
+                var row = dt.Rows[0];
+                return new Vehicle
+                {
+                    Id = row["Id"].ToString(),
+                    PlateNumber = row["PlateNumber"].ToString(),
+                    Province = row["Province"] == DBNull.Value ? null : row["Province"].ToString(),
+                    PlateCode = row["PlateCode"] == DBNull.Value ? null : row["PlateCode"].ToString(),
+                    VehicleType = row["VehicleType"] == DBNull.Value ? null : row["VehicleType"].ToString(),
+                    BrandModel = row["BrandModel"] == DBNull.Value ? null : row["BrandModel"].ToString(),
+                    RatedLoad = row["RatedLoad"] == DBNull.Value ? 0 : Convert.ToDecimal(row["RatedLoad"]),
+                    CurbWeight = row["CurbWeight"] == DBNull.Value ? 0 : Convert.ToDecimal(row["CurbWeight"]),
+                    OwnerName = row["OwnerName"] == DBNull.Value ? null : row["OwnerName"].ToString(),
+                    OwnerPhone = row["OwnerPhone"] == DBNull.Value ? null : row["OwnerPhone"].ToString(),
+                    OwnerUnit = row["OwnerUnit"] == DBNull.Value ? null : row["OwnerUnit"].ToString(),
+                    Status = row["Status"] == DBNull.Value ? "Active" : row["Status"].ToString(),
+                    Remark = row["Remark"] == DBNull.Value ? null : row["Remark"].ToString(),
+                    CreateTime = Convert.ToDateTime(row["CreateTime"]),
+                    UpdateTime = Convert.ToDateTime(row["UpdateTime"])
+                };
+            }
+            catch { return null; }
+        }
+
+        public static bool DeleteVehicle(string id)
+        {
+            try
+            {
+                var sql = "DELETE FROM Vehicles WHERE Id = @Id";
+                return ExecuteNonQuery(sql, new SQLiteParameter("@Id", id)) > 0;
+            }
+            catch { return false; }
         }
 
         #endregion

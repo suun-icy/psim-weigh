@@ -152,7 +152,7 @@ namespace pism_weigh
             var btnSettings = new System.Windows.Forms.Button
             {
                 Text = "设置",
-                Location = new System.Drawing.Point(408, 308),
+                Location = new System.Drawing.Point(326, 308),
                 Size = new System.Drawing.Size(75, 25),
                 Font = new System.Drawing.Font("Microsoft YaHei UI", 8F),
                 UseVisualStyleBackColor = true
@@ -164,6 +164,18 @@ namespace pism_weigh
                     RefreshDropdowns();
             };
             panel3.Controls.Add(btnSettings);
+
+            // 车辆管理按钮
+            var btnVehicles = new System.Windows.Forms.Button
+            {
+                Text = "车辆管理",
+                Location = new System.Drawing.Point(408, 308),
+                Size = new System.Drawing.Size(75, 25),
+                Font = new System.Drawing.Font("Microsoft YaHei UI", 8F),
+                UseVisualStyleBackColor = true
+            };
+            btnVehicles.Click += (s, e) => { new VehicleForm().ShowDialog(); };
+            panel3.Controls.Add(btnVehicles);
 
             // 填充下拉数据
             PopulateDropdowns();
