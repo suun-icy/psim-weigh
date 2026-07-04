@@ -1016,10 +1016,9 @@ namespace pism_weigh
                 return;
             }
 
-            // 打印磅单（与查询界面重打流程一致：选择打印机→预览→打印）
+            // 直接显示打印预览
             var printService = new PrintService();
-            if (!printService.PrintPreviewWithDialog(record, PrintTemplate.WeighSlip240x93))
-                return; // 用户取消
+            printService.PrintPreview(record, PrintTemplate.WeighSlip240x93);
 
             // 打印成功后更新打印次数
             record.PrintCount = record.PrintCount + 1;
