@@ -149,7 +149,7 @@ namespace pism_weigh
             }
 
             var service = new PrintService();
-            bool printSuccess = service.Print(record, PrintTemplate.Standard);
+            bool printSuccess = service.Print(record, PrintTemplate.WeighSlip240x93);
             if (!printSuccess)
             {
                 MessageBox.Show("重打失败，请检查打印机状态。", "打印失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
