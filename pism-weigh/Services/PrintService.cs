@@ -163,24 +163,24 @@ namespace pism_weigh.Services
             float col4W = tableWidth * 0.38f;  // 右数据列
 
             using (var pen = new Pen(Color.Black, 0.3f))
-            using (var titleFont = new Font("宋体", 7f, FontStyle.Bold))       // 标题
-            using (var labelFont = new Font("宋体", 4.5f, FontStyle.Regular))  // 标签
-            using (var valueFont = new Font("宋体", 4.5f, FontStyle.Regular))  // 数据
-            using (var timeFont = new Font("宋体", 3.5f, FontStyle.Regular))   // 时间行
+            using (var titleFont = new Font("宋体", 9f, FontStyle.Bold))       // 标题
+            using (var labelFont = new Font("宋体", 5.5f, FontStyle.Regular))  // 标签
+            using (var valueFont = new Font("宋体", 5.5f, FontStyle.Regular))  // 数据
+            using (var timeFont = new Font("宋体", 4.5f, FontStyle.Regular))   // 时间行
             {
                 // ===== 第1行：标题（无边框，居中） =====
                 var titleSF = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-                var titleRect = new RectangleF(x, y, tableWidth, 9f);
+                var titleRect = new RectangleF(x, y, tableWidth, 11f);
                 g.DrawString("磅  单", titleFont, Brushes.Black, titleRect, titleSF);
-                y += 9f;
+                y += 11f;
 
                 // ===== 第2行：时间行（无边框）=====
-                var timeText = "时间  " + DateTime.Now.ToString("yyyy/MM/dd HH:mm");
+                var timeText = "时间  " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
                 var timeSize = g.MeasureString(timeText, timeFont);
                 g.DrawString(timeText, timeFont, Brushes.Black, x + 1f, y + 1f);
                 y += timeSize.Height + 2f;
 
-                float rowH = 7f;
+                float rowH = 9f;
 
                 // ===== 第3行：车牌 | 数据 | 毛重 | 数据 =====
                 DrawFourColRow(g, pen, labelFont, valueFont, x, y, col1W, col2W, col3W, col4W, rowH,
@@ -203,13 +203,13 @@ namespace pism_weigh.Services
                 // ===== 第6行：送货地点 | 数据 | 毛重时间 | 数据 =====
                 DrawFourColRow(g, pen, labelFont, valueFont, x, y, col1W, col2W, col3W, col4W, rowH,
                     "送货地点", _record.Receiver ?? "",
-                    "毛重时间", _record.FirstWeighTime?.ToString("MM/dd HH:mm") ?? "");
+                    "毛重时间", _record.FirstWeighTime?.ToString("yyyy-MM-dd HH:mm:ss") ?? "");
                 y += rowH;
 
                 // ===== 第7行：送货单位 | 数据 | 皮重时间 | 数据 =====
                 DrawFourColRow(g, pen, labelFont, valueFont, x, y, col1W, col2W, col3W, col4W, rowH,
                     "送货单位", _record.Receiver ?? "",
-                    "皮重时间", _record.SecondWeighTime?.ToString("MM/dd HH:mm") ?? "");
+                    "皮重时间", _record.SecondWeighTime?.ToString("yyyy-MM-dd HH:mm:ss") ?? "");
                 y += rowH;
 
                 // ===== 第8行：司机 | 数据 | (空) | (空) =====
