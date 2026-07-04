@@ -1017,6 +1017,7 @@ namespace pism_weigh
             }
 
             // 打印磅单（与查询界面重打流程一致：选择打印机→预览→打印）
+            var printService = new PrintService();
             if (!printService.PrintPreviewWithDialog(record, PrintTemplate.WeighSlip240x93))
                 return; // 用户取消
 
