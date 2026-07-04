@@ -312,6 +312,8 @@ namespace pism_weigh
             this.panel3.Controls.Add(this.button4);
             this.panel3.Controls.Add(this.label8);
             this.panel3.Controls.Add(this.button2);
+            this.panel3.Controls.Add(this.labelManualTip);
+            this.panel3.Controls.Add(this.checkBoxManualMode);
             this.panel3.Location = new System.Drawing.Point(195, 236);
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(584, 189);
@@ -349,6 +351,28 @@ namespace pism_weigh
             this.radioButton3.Text = "购入";
             this.radioButton3.UseVisualStyleBackColor = true;
             this.radioButton3.CheckedChanged += new System.EventHandler(this.radioButton3_CheckedChanged);
+            // 
+            // labelManualTip
+            // 
+            this.labelManualTip.AutoSize = true;
+            this.labelManualTip.ForeColor = System.Drawing.Color.Gray;
+            this.labelManualTip.Location = new System.Drawing.Point(100, 165);
+            this.labelManualTip.Name = "labelManualTip";
+            this.labelManualTip.Size = new System.Drawing.Size(173, 12);
+            this.labelManualTip.TabIndex = 22;
+            this.labelManualTip.Text = "手动模式下可直接输入重量数值";
+            this.labelManualTip.Visible = false;
+            // 
+            // checkBoxManualMode
+            // 
+            this.checkBoxManualMode.AutoSize = true;
+            this.checkBoxManualMode.Location = new System.Drawing.Point(10, 163);
+            this.checkBoxManualMode.Name = "checkBoxManualMode";
+            this.checkBoxManualMode.Size = new System.Drawing.Size(72, 16);
+            this.checkBoxManualMode.TabIndex = 21;
+            this.checkBoxManualMode.Text = "手动模式";
+            this.checkBoxManualMode.UseVisualStyleBackColor = true;
+            this.checkBoxManualMode.CheckedChanged += new System.EventHandler(this.checkBoxManualMode_CheckedChanged);
             // 
             // textBox5
             // 
@@ -685,6 +709,8 @@ namespace pism_weigh
         private System.Windows.Forms.Label label15;
         private System.Windows.Forms.RadioButton radioButton4;
         private System.Windows.Forms.RadioButton radioButton3;
+        private System.Windows.Forms.CheckBox checkBoxManualMode;
+        private System.Windows.Forms.Label labelManualTip;
     }
 }
 

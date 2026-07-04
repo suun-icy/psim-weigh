@@ -176,6 +176,20 @@ namespace pism_weigh
                 return;
             }
 
+            // 手动模式：用户直接在textBox1中输入重量，按钮用于确认
+            if (checkBoxManualMode.Checked)
+            {
+                if (textBox1.Text == "" || textBox1.Text == "0")
+                {
+                    System.Media.SystemSounds.Beep.Play();
+                    MessageBox.Show("请手动输入重车重量");
+                    return;
+                }
+                MessageBox.Show("重车重量已确认：" + textBox1.Text + " 吨");
+                return;
+            }
+
+            // 联机模式：从串口实时重量复制
             if (textBox6.Text == "")
             {
                 System.Media.SystemSounds.Beep.Play();
@@ -301,6 +315,20 @@ namespace pism_weigh
                 return;
             }
 
+            // 手动模式：用户直接在textBox2中输入重量，按钮用于确认
+            if (checkBoxManualMode.Checked)
+            {
+                if (textBox2.Text == "" || textBox2.Text == "0")
+                {
+                    System.Media.SystemSounds.Beep.Play();
+                    MessageBox.Show("请手动输入空车重量");
+                    return;
+                }
+                MessageBox.Show("空车重量已确认：" + textBox2.Text + " 吨");
+                return;
+            }
+
+            // 联机模式：从串口实时重量复制
             if (textBox6.Text == "")
             {
                 System.Media.SystemSounds.Beep.Play();
@@ -470,6 +498,30 @@ namespace pism_weigh
         private void radioButton4_CheckedChanged(object sender, EventArgs e)
         {
 
+        }
+
+        /// <summary>
+        /// 手动模式切换事件
+        /// </summary>
+        private void checkBoxManualMode_CheckedChanged(object sender, EventArgs e)
+        {
+            bool isManual = checkBoxManualMode.Checked;
+            if (isManual)
+            {
+                // 手动模式
+                textBox6.Enabled = false;
+                labelManualTip.Visible = true;
+                label6.Text = "手动模式";
+                label6.ForeColor = System.Drawing.Color.DarkOrange;
+            }
+            else
+            {
+                // 联机模式（恢复原有行为）
+                textBox6.Enabled = true;
+                labelManualTip.Visible = false;
+                label6.Text = "串口已关闭";
+                label6.ForeColor = System.Drawing.Color.Red;
+            }
         }
     }
 }

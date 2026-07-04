@@ -1,24 +1,24 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "D:\\work-code\\project\\psim-weigh-master\\",
+  "WorkspaceRootPath": "G:\\workspace\\project\\psim-weigh\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\10694\\.claude.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E98C83FA-06C1-4822-8AE3-9E06AB394BC8}|pism-weigh\\pism-weigh.csproj|G:\\workspace\\project\\psim-weigh\\pism-weigh\\usercontrol1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{E98C83FA-06C1-4822-8AE3-9E06AB394BC8}|pism-weigh\\pism-weigh.csproj|solutionrelative:pism-weigh\\usercontrol1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E98C83FA-06C1-4822-8AE3-9E06AB394BC8}|pism-weigh\\pism-weigh.csproj|G:\\workspace\\project\\psim-weigh\\pism-weigh\\userlogin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{E98C83FA-06C1-4822-8AE3-9E06AB394BC8}|pism-weigh\\pism-weigh.csproj|solutionrelative:pism-weigh\\userlogin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E98C83FA-06C1-4822-8AE3-9E06AB394BC8}|pism-weigh\\pism-weigh.csproj|G:\\workspace\\project\\psim-weigh\\pism-weigh\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{E98C83FA-06C1-4822-8AE3-9E06AB394BC8}|pism-weigh\\pism-weigh.csproj|solutionrelative:pism-weigh\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{00000000-0000-0000-0000-000000000000}|\u003CSolution\u003E|pism-weigh||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E98C83FA-06C1-4822-8AE3-9E06AB394BC8}|pism-weigh\\pism-weigh.csproj|d:\\work-code\\project\\psim-weigh-master\\pism-weigh\\services\\printservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E98C83FA-06C1-4822-8AE3-9E06AB394BC8}|pism-weigh\\pism-weigh.csproj|solutionrelative:pism-weigh\\services\\printservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E98C83FA-06C1-4822-8AE3-9E06AB394BC8}|pism-weigh\\pism-weigh.csproj|d:\\work-code\\project\\psim-weigh-master\\pism-weigh\\database\\databasehelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E98C83FA-06C1-4822-8AE3-9E06AB394BC8}|pism-weigh\\pism-weigh.csproj|solutionrelative:pism-weigh\\database\\databasehelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E98C83FA-06C1-4822-8AE3-9E06AB394BC8}|pism-weigh\\pism-weigh.csproj|D:\\work-code\\project\\psim-weigh-master\\pism-weigh\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E98C83FA-06C1-4822-8AE3-9E06AB394BC8}|pism-weigh\\pism-weigh.csproj|solutionrelative:pism-weigh\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E98C83FA-06C1-4822-8AE3-9E06AB394BC8}|pism-weigh\\pism-weigh.csproj|d:\\work-code\\project\\psim-weigh-master\\pism-weigh\\||{B270807C-D8C6-49EB-8EBE-8E8D566637A1}|5e9a8ac2-4f34-4521-858f-4c248ba31532"
     }
   ],
   "DocumentGroupContainers": [
@@ -28,176 +28,62 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 27,
+          "SelectedChildIndex": 0,
           "Children": [
             {
-              "$type": "Bookmark",
-              "Name": "ST:129:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:131:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:132:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{74946827-37a0-11d2-a273-00c04f8ef4ff}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:133:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:134:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:135:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:136:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{b1e99781-ab81-11d0-b683-00aa00a3ee26}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:9:0:{fabf9319-47eb-497e-b8f6-d9f73fba5f55}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:10:0:{fabf9319-47eb-497e-b8f6-d9f73fba5f55}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:11:0:{fabf9319-47eb-497e-b8f6-d9f73fba5f55}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:12:0:{fabf9319-47eb-497e-b8f6-d9f73fba5f55}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:13:0:{fabf9319-47eb-497e-b8f6-d9f73fba5f55}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:14:0:{fabf9319-47eb-497e-b8f6-d9f73fba5f55}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:8:0:{fabf9319-47eb-497e-b8f6-d9f73fba5f55}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:7:0:{fabf9319-47eb-497e-b8f6-d9f73fba5f55}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:6:0:{fabf9319-47eb-497e-b8f6-d9f73fba5f55}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:5:0:{fabf9319-47eb-497e-b8f6-d9f73fba5f55}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:4:0:{fabf9319-47eb-497e-b8f6-d9f73fba5f55}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:3:0:{fabf9319-47eb-497e-b8f6-d9f73fba5f55}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:15:0:{fabf9319-47eb-497e-b8f6-d9f73fba5f55}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:16:0:{fabf9319-47eb-497e-b8f6-d9f73fba5f55}"
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": ".claude.json",
+              "DocumentMoniker": "C:\\Users\\10694\\.claude.json",
+              "ToolTip": "C:\\Users\\10694\\.claude.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAHYAAAACAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-07-03T16:52:55.54Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "PrintService.cs",
-              "DocumentMoniker": "D:\\work-code\\project\\psim-weigh-master\\pism-weigh\\Services\\PrintService.cs",
-              "RelativeDocumentMoniker": "pism-weigh\\Services\\PrintService.cs",
-              "ToolTip": "D:\\work-code\\project\\psim-weigh-master\\pism-weigh\\Services\\PrintService.cs",
-              "RelativeToolTip": "pism-weigh\\Services\\PrintService.cs",
-              "ViewState": "AgIAAKEAAAAAAAAAAAAwwKUAAAAQAAAAAAAAAA==",
+              "Title": "UserControl1.cs [\u8BBE\u8BA1]",
+              "DocumentMoniker": "G:\\workspace\\project\\psim-weigh\\pism-weigh\\UserControl1.cs",
+              "RelativeDocumentMoniker": "pism-weigh\\UserControl1.cs",
+              "ToolTip": "G:\\workspace\\project\\psim-weigh\\pism-weigh\\UserControl1.cs [\u8BBE\u8BA1]",
+              "RelativeToolTip": "pism-weigh\\UserControl1.cs [\u8BBE\u8BA1]",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-02T09:07:15.908Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-07-03T16:32:58.448Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "DatabaseHelper.cs",
-              "DocumentMoniker": "D:\\work-code\\project\\psim-weigh-master\\pism-weigh\\Database\\DatabaseHelper.cs",
-              "RelativeDocumentMoniker": "pism-weigh\\Database\\DatabaseHelper.cs",
-              "ToolTip": "D:\\work-code\\project\\psim-weigh-master\\pism-weigh\\Database\\DatabaseHelper.cs",
-              "RelativeToolTip": "pism-weigh\\Database\\DatabaseHelper.cs",
-              "ViewState": "AgIAABAAAAAAAAAAAAA4wCYAAAAUAAAAAAAAAA==",
+              "Title": "UserLogin.cs [\u8BBE\u8BA1]",
+              "DocumentMoniker": "G:\\workspace\\project\\psim-weigh\\pism-weigh\\UserLogin.cs",
+              "RelativeDocumentMoniker": "pism-weigh\\UserLogin.cs",
+              "ToolTip": "G:\\workspace\\project\\psim-weigh\\pism-weigh\\UserLogin.cs [\u8BBE\u8BA1]",
+              "RelativeToolTip": "pism-weigh\\UserLogin.cs [\u8BBE\u8BA1]",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-02T08:49:45.783Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "pism-weigh",
-              "DocumentMoniker": "D:\\work-code\\project\\psim-weigh-master\\pism-weigh\\pism-weigh.csproj",
-              "RelativeDocumentMoniker": "pism-weigh\\pism-weigh.csproj",
-              "ToolTip": "D:\\work-code\\project\\psim-weigh-master\\pism-weigh\\pism-weigh.csproj*",
-              "RelativeToolTip": "pism-weigh\\pism-weigh.csproj*",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2026-04-02T08:48:59.83Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-07-03T16:32:56.688Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 3,
-              "Title": "Form1.cs",
-              "DocumentMoniker": "D:\\work-code\\project\\psim-weigh-master\\pism-weigh\\Form1.cs",
+              "Title": "Form1.cs [\u8BBE\u8BA1]",
+              "DocumentMoniker": "G:\\workspace\\project\\psim-weigh\\pism-weigh\\Form1.cs",
               "RelativeDocumentMoniker": "pism-weigh\\Form1.cs",
-              "ToolTip": "D:\\work-code\\project\\psim-weigh-master\\pism-weigh\\Form1.cs",
-              "RelativeToolTip": "pism-weigh\\Form1.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAGAAAAAAAAAA==",
+              "ToolTip": "G:\\workspace\\project\\psim-weigh\\pism-weigh\\Form1.cs [\u8BBE\u8BA1]",
+              "RelativeToolTip": "pism-weigh\\Form1.cs [\u8BBE\u8BA1]",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-02T08:22:50.933Z",
-              "EditorCaption": ""
-            }
-          ]
-        },
-        {
-          "DockedWidth": 200,
-          "SelectedChildIndex": -1,
-          "Children": [
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{0ad07096-bba9-4900-a651-0598d26f6d24}"
+              "WhenOpened": "2026-07-03T16:32:51.442Z"
             },
             {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{004be353-6879-467c-9d1e-9ac23cdf6d49}"
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "pism-weigh",
+              "DocumentMoniker": "G:\\workspace\\project\\psim-weigh\\pism-weigh\\pism-weigh.csproj",
+              "RelativeDocumentMoniker": "pism-weigh\\pism-weigh.csproj",
+              "ToolTip": "G:\\workspace\\project\\psim-weigh\\pism-weigh\\pism-weigh.csproj",
+              "RelativeToolTip": "pism-weigh\\pism-weigh.csproj",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-07-03T16:10:51.146Z"
             }
           ]
         }
