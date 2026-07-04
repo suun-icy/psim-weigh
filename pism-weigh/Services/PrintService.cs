@@ -26,6 +26,57 @@ namespace pism_weigh.Services
             _printDocument = new PrintDocument();
             _printDocument.PrintPage += PrintDocument_PrintPage;
             _template = PrintTemplate.WeighSlip240x93;
+
+            // 设置默认纸张为 24cm×9.31cm
+            SetDefaultPaperSize();
+        }
+
+        /// <summary>
+        /// 设置默认纸张大小
+        /// </summary>
+        private void SetDefaultPaperSize()
+        {
+            try
+            {
+                var paperSize = new PaperSize("WeighSlip", 240, 93);
+                paperSize.RawKind = (int)PaperKind.Custom;
+                _printDocument.DefaultPageSettings.PaperSize = paperSize;
+                _printDocument.DefaultPageSettings.Margins = new Margins(3, 3, 2, 2);
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// 打印预览（先弹出打印机选择对话框）
+        /// </summary>
+        public bool PrintPreviewWithDialog(WeighRecord record, PrintTemplate template = null)
+        {
+            _record = record;
+            _template = template ?? PrintTemplate.WeighSlip240x93;
+
+            SetDefaultPaperSize();
+
+            var printDialog = new PrintDialog
+            {
+                Document = _printDocument,
+                AllowSomePages = false,
+                UseEXDialog = true
+            };
+
+            if (printDialog.ShowDialog() != DialogResult.OK)
+                return false;
+
+            _printDocument.PrinterSettings = printDialog.PrinterSettings;
+
+            var previewDialog = new PrintPreviewDialog
+            {
+                Document = _printDocument,
+                Width = 1000,
+                Height = 700,
+                UseAntiAlias = true
+            };
+            previewDialog.ShowDialog();
+            return true;
         }
 
         /// <summary>

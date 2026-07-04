@@ -992,7 +992,7 @@ namespace pism_weigh
             // 打印磅单
             try
             {
-                printService.PrintPreview(record, PrintTemplate.WeighSlip240x93);
+                printService.PrintPreviewWithDialog(record, PrintTemplate.WeighSlip240x93);
             }
             catch (Exception ex)
             {
