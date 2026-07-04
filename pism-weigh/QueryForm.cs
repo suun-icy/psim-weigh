@@ -18,9 +18,35 @@ namespace pism_weigh
         {
             InitializeComponent();
             ApplyStyle();
+            ApplyLayout();
             dgvRecords.AutoGenerateColumns = true;
             dgvRecords.DataBindingComplete += DgvRecords_DataBindingComplete;
             dgvRecords.CellFormatting += DgvRecords_CellFormatting;
+        }
+
+        private void ApplyLayout()
+        {
+            panelFilter.Height = 155;
+
+            btnDetail.Parent = panelFilter;
+            btnDetail.Location = new System.Drawing.Point(15, 85);
+            btnEdit.Parent = panelFilter;
+            btnEdit.Location = new System.Drawing.Point(100, 85);
+            btnExport.Parent = panelFilter;
+            btnExport.Location = new System.Drawing.Point(185, 85);
+            btnReprint.Parent = panelFilter;
+            btnReprint.Location = new System.Drawing.Point(270, 85);
+            btnClose.Parent = panelFilter;
+            btnClose.Location = new System.Drawing.Point(355, 85);
+
+            lblSummary.Parent = panelFilter;
+            lblSummary.Location = new System.Drawing.Point(15, 125);
+
+            btnSearch.Location = new System.Drawing.Point(650, 82);
+            btnReset.Location = new System.Drawing.Point(770, 82);
+
+            panelBottom.Visible = false;
+            panelMain.Dock = DockStyle.Fill;
         }
 
         private void DgvRecords_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)

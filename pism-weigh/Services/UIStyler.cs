@@ -40,7 +40,11 @@ namespace pism_weigh.Services
             dgv.AllowUserToDeleteRows = false;
             dgv.ReadOnly = true;
             dgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
+            dgv.ScrollBars = ScrollBars.Both;
+
+            // 禁止单元格内容换行
+            dgv.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
 
             // 表头样式
             dgv.EnableHeadersVisualStyles = false;
@@ -74,6 +78,23 @@ namespace pism_weigh.Services
             btn.Cursor = Cursors.Hand;
             btn.MouseEnter += (s, e) => { btn.BackColor = Darken(btn.BackColor, 0.85f); };
             btn.MouseLeave += (s, e) => { btn.BackColor = backColor ?? PrimaryBlue; };
+
+            // 禁用状态显著标记
+            btn.EnabledChanged += (s, e) =>
+            {
+                if (!btn.Enabled)
+                {
+                    btn.BackColor = Color.FromArgb(220, 220, 220);
+                    btn.ForeColor = Color.FromArgb(160, 160, 160);
+                    btn.Cursor = Cursors.Default;
+                }
+                else
+                {
+                    btn.BackColor = backColor ?? PrimaryBlue;
+                    btn.ForeColor = foreColor ?? Color.White;
+                    btn.Cursor = Cursors.Hand;
+                }
+            };
         }
 
         /// <summary>美化Panel — 白色卡片式</summary>
