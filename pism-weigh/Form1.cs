@@ -66,34 +66,60 @@ namespace pism_weigh
         private void InitExtraControls()
         {
             // 扩大 panel3 以容纳新字段
-            panel3.Height = 270;
-            this.Height = 560;
+            panel3.Height = 290;
+            this.Height = 580;
             panel6.Top = panel3.Bottom + 5;
 
-            // "查询"按钮
-            var btnQuery = new System.Windows.Forms.Button
-            {
-                Text = "查询",
-                Location = new System.Drawing.Point(265, 138),
-                Size = new System.Drawing.Size(65, 28),
-                UseVisualStyleBackColor = true
-            };
-            btnQuery.Click += (s, e) => { new QueryForm().ShowDialog(); };
-            panel3.Controls.Add(btnQuery);
+            // ===== 布局优化：重排控件位置 =====
 
+            // 右侧按钮列（统一靠右对齐）
+            button2.Text = "称取重车";
+            button2.Location = new System.Drawing.Point(380, 8);
+            button2.Size = new System.Drawing.Size(90, 32);
+            button2.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F);
+
+            button4.Text = "称取空车";
+            button4.Location = new System.Drawing.Point(475, 8);
+            button4.Size = new System.Drawing.Size(90, 32);
+            button4.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F);
+
+            button5.Text = "计  算";
+            button5.Location = new System.Drawing.Point(380, 48);
+            button5.Size = new System.Drawing.Size(185, 35);
+            button5.Font = new System.Drawing.Font("Microsoft YaHei UI", 10F, System.Drawing.FontStyle.Bold);
+
+            button7.Text = "打  印";
+            button7.Location = new System.Drawing.Point(380, 90);
+            button7.Size = new System.Drawing.Size(185, 45);
+            button7.Font = new System.Drawing.Font("Microsoft YaHei UI", 12F, System.Drawing.FontStyle.Bold);
+
+            // 称重模式下拉框 - 移到进销行右侧
+            comboBox8.Location = new System.Drawing.Point(270, 140);
+            comboBox8.Size = new System.Drawing.Size(110, 24);
+
+            // 车牌历史 - 移到右下角
+            comboBoxPlateHistory.Location = new System.Drawing.Point(340, 220);
+            comboBoxPlateHistory.Size = new System.Drawing.Size(225, 24);
+
+            // 手动模式及提示
+            checkBoxManualMode.Location = new System.Drawing.Point(10, 255);
+            labelManualTip.Location = new System.Drawing.Point(90, 257);
+
+            // ===== 新增字段 =====
             // 运输内容
             var lblCargo = new System.Windows.Forms.Label
             {
                 Text = "运输内容", AutoSize = true,
-                Location = new System.Drawing.Point(8, 198)
+                Location = new System.Drawing.Point(8, 170),
+                Font = new System.Drawing.Font("Microsoft YaHei UI", 9F)
             };
             panel3.Controls.Add(lblCargo);
 
             txtCargo = new System.Windows.Forms.TextBox
             {
-                Location = new System.Drawing.Point(81, 194),
-                Size = new System.Drawing.Size(163, 21),
-                Font = new System.Drawing.Font("宋体", 9F)
+                Location = new System.Drawing.Point(81, 167),
+                Size = new System.Drawing.Size(145, 23),
+                Font = new System.Drawing.Font("Microsoft YaHei UI", 9F)
             };
             panel3.Controls.Add(txtCargo);
 
@@ -101,15 +127,15 @@ namespace pism_weigh
             var lblDriver = new System.Windows.Forms.Label
             {
                 Text = "司机", AutoSize = true,
-                Location = new System.Drawing.Point(8, 228)
+                Location = new System.Drawing.Point(8, 200)
             };
             panel3.Controls.Add(lblDriver);
 
             txtDriver = new System.Windows.Forms.TextBox
             {
-                Location = new System.Drawing.Point(81, 224),
-                Size = new System.Drawing.Size(163, 21),
-                Font = new System.Drawing.Font("宋体", 9F)
+                Location = new System.Drawing.Point(81, 197),
+                Size = new System.Drawing.Size(145, 23),
+                Font = new System.Drawing.Font("Microsoft YaHei UI", 9F)
             };
             panel3.Controls.Add(txtDriver);
 
@@ -117,19 +143,39 @@ namespace pism_weigh
             var lblReceiver = new System.Windows.Forms.Label
             {
                 Text = "收货单位", AutoSize = true,
-                Location = new System.Drawing.Point(265, 228)
+                Location = new System.Drawing.Point(240, 170)
             };
             panel3.Controls.Add(lblReceiver);
 
             txtReceiver = new System.Windows.Forms.TextBox
             {
-                Location = new System.Drawing.Point(340, 224),
-                Size = new System.Drawing.Size(200, 21),
-                Font = new System.Drawing.Font("宋体", 9F)
+                Location = new System.Drawing.Point(312, 167),
+                Size = new System.Drawing.Size(253, 23),
+                Font = new System.Drawing.Font("Microsoft YaHei UI", 9F)
             };
             panel3.Controls.Add(txtReceiver);
 
-            // 设置 AutoComplete
+            // 历史车牌标签
+            var lblPlateHistory = new System.Windows.Forms.Label
+            {
+                Text = "历史车牌", AutoSize = true,
+                Location = new System.Drawing.Point(278, 223)
+            };
+            panel3.Controls.Add(lblPlateHistory);
+
+            // "查询"按钮 - 右下角
+            var btnQuery = new System.Windows.Forms.Button
+            {
+                Text = "查询记录",
+                Location = new System.Drawing.Point(390, 252),
+                Size = new System.Drawing.Size(90, 28),
+                Font = new System.Drawing.Font("Microsoft YaHei UI", 9F),
+                UseVisualStyleBackColor = true
+            };
+            btnQuery.Click += (s, e) => { new QueryForm().ShowDialog(); };
+            panel3.Controls.Add(btnQuery);
+
+            // ===== 设置 AutoComplete =====
             SetupAutoComplete();
         }
 
@@ -934,28 +980,79 @@ namespace pism_weigh
 
         private void ApplyModernUiStyle()
         {
-            Font = new Font("Microsoft YaHei UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            BackColor = Color.FromArgb(245, 248, 252);
+            this.Font = new Font("Microsoft YaHei UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 134);
+            this.BackColor = Color.FromArgb(240, 242, 245);
+            this.Text = "地磅称重管理系统";
 
+            // 面板样式
             var panels = new[] { panel1, panel2, panel3, panel4, panel5, panel6 };
             foreach (var panel in panels)
             {
                 panel.BackColor = Color.White;
-                panel.BorderStyle = BorderStyle.FixedSingle;
+                panel.BorderStyle = BorderStyle.None;
+                panel.Padding = new Padding(6);
             }
 
-            var actionButtons = new[] { button1, button2, button4, button5, button6, button7, button8, button9, button10, button3 };
-            foreach (var button in actionButtons)
+            // 面板标题栏效果
+            panel1.BackColor = Color.FromArgb(248, 249, 250);
+            panel4.BackColor = Color.FromArgb(248, 249, 250);
+            panel5.BackColor = Color.FromArgb(248, 249, 250);
+
+            // 所有按钮统一样式
+            var allButtons = new[] { button1, button2, button3, button4, button5, button6, button7, button8, button9, button10 };
+            foreach (var btn in allButtons)
             {
-                button.FlatStyle = FlatStyle.Flat;
-                button.FlatAppearance.BorderColor = Color.FromArgb(200, 210, 223);
-                button.BackColor = Color.FromArgb(240, 244, 250);
+                btn.FlatStyle = FlatStyle.Flat;
+                btn.FlatAppearance.BorderSize = 0;
+                btn.BackColor = Color.FromArgb(64, 158, 255);
+                btn.ForeColor = Color.White;
+                btn.Cursor = System.Windows.Forms.Cursors.Hand;
             }
 
-            textBoxCurrentWeight.Font = new Font("Consolas", 22F, FontStyle.Bold);
-            textBox6.Font = new Font("Consolas", 22F, FontStyle.Bold);
-            textBox_receive.BackColor = Color.FromArgb(250, 251, 253);
+            // 特殊按钮颜色
+            button1.BackColor = Color.FromArgb(103, 194, 58);  // 打开串口 - 绿色
+            button7.BackColor = Color.FromArgb(245, 108, 108); // 打印 - 红色
+            button5.BackColor = Color.FromArgb(64, 158, 255);  // 计算 - 蓝色
 
+            // 次要按钮
+            button3.BackColor = Color.FromArgb(144, 147, 153);
+            button6.BackColor = Color.FromArgb(144, 147, 153);
+            button8.BackColor = Color.FromArgb(144, 147, 153);
+            button9.BackColor = Color.FromArgb(144, 147, 153);
+            button10.BackColor = Color.FromArgb(144, 147, 153);
+
+            // 重量显示区
+            textBoxCurrentWeight.Font = new Font("Consolas", 24F, FontStyle.Bold);
+            textBoxCurrentWeight.BackColor = Color.FromArgb(245, 247, 250);
+            textBox6.Font = new Font("Consolas", 24F, FontStyle.Bold);
+            textBox6.BackColor = Color.FromArgb(245, 247, 250);
+            textBox_receive.BackColor = Color.FromArgb(245, 247, 250);
+
+            // 输入框统一样式
+            var inputBoxes = new[] { textBox1, textBox2, textBox3, textBox5, textBox4 };
+            foreach (var tb in inputBoxes)
+            {
+                tb.BorderStyle = BorderStyle.FixedSingle;
+                tb.Font = new Font("Microsoft YaHei UI", 9F);
+            }
+
+            textBox1.Font = new Font("Microsoft YaHei UI", 11F, FontStyle.Bold);
+            textBox2.Font = new Font("Microsoft YaHei UI", 11F, FontStyle.Bold);
+            textBox3.Font = new Font("Microsoft YaHei UI", 11F, FontStyle.Bold);
+
+            // 下拉框统一样式
+            var combos = new[] { comboBox1, comboBox2, comboBox3, comboBox4, comboBox5, comboBox7, comboBox8 };
+            foreach (var cb in combos)
+            {
+                cb.FlatStyle = FlatStyle.Flat;
+                cb.Font = new Font("Microsoft YaHei UI", 9F);
+            }
+
+            // 状态栏
+            panel6.BackColor = Color.FromArgb(245, 247, 250);
+            label6.Font = new Font("Microsoft YaHei UI", 9F, FontStyle.Bold);
+
+            // 锚点
             panel2.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             panel3.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             panel5.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
