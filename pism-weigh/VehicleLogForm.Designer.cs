@@ -58,6 +58,8 @@ namespace pism_weigh
             };
             Controls.Add(dgvLogs);
 
+            Services.UIStyler.StyleDataGridView(dgvLogs);
+
             this.Load += VehicleLogForm_Load;
         }
     }

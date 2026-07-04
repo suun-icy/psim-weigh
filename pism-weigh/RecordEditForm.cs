@@ -25,6 +25,7 @@ namespace pism_weigh
             _working = CloneRecord(record);
 
             InitializeComponent();
+            Services.UIStyler.StyleForm(this, "编辑称重记录");
             PopulateFields();
         }
 

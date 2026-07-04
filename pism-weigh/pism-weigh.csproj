@@ -78,6 +78,7 @@
     <Compile Include="Models\ModifyHistory.cs" />
     <Compile Include="Database\DatabaseHelper.cs" />
     <Compile Include="Services\ScaleService.cs" />
+    <Compile Include="Services\UIStyler.cs" />
     <Compile Include="Services\PrintService.cs" />
     <Compile Include="Services\PrinterNative.cs" />
     <Compile Include="Services\PrintPreviewForm.cs">

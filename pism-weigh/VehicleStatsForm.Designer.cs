@@ -51,6 +51,8 @@ namespace pism_weigh
             };
             Controls.Add(dgvStats);
 
+            Services.UIStyler.StyleDataGridView(dgvStats);
+
             btnSearch.Click += btnSearch_Click;
             btnExport.Click += btnExport_Click;
             btnClose.Click += btnClose_Click;

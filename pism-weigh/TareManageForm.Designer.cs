@@ -97,6 +97,8 @@ namespace pism_weigh
             btnClose.Click += btnClose_Click;
             Controls.Add(btnClose);
 
+            Services.UIStyler.StyleDataGridView(dgvRecords);
+
             this.Load += TareManageForm_Load;
         }
     }

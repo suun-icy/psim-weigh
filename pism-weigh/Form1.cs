@@ -1135,9 +1135,7 @@ namespace pism_weigh
 
         private void ApplyModernUiStyle()
         {
-            this.Font = new Font("Microsoft YaHei UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            this.BackColor = Color.FromArgb(240, 242, 245);
-            this.Text = "地磅称重管理系统";
+            Services.UIStyler.StyleForm(this, "地磅称重管理系统");
 
             // 面板样式
             var panels = new[] { panel1, panel2, panel3, panel4, panel5, panel6 };

@@ -23,6 +23,7 @@ namespace pism_weigh
 
         private void TareManageForm_Load(object sender, EventArgs e)
         {
+            Services.UIStyler.StyleForm(this, "皮重管理 - " + _plateNumber);
             lblPlate.Text = "车牌: " + _plateNumber;
             RefreshList();
         }

@@ -17,6 +17,7 @@ namespace pism_weigh
         public QueryForm()
         {
             InitializeComponent();
+            ApplyStyle();
             dgvRecords.AutoGenerateColumns = true;
             dgvRecords.DataBindingComplete += DgvRecords_DataBindingComplete;
             dgvRecords.CellFormatting += DgvRecords_CellFormatting;

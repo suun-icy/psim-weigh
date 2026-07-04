@@ -30,6 +30,7 @@ namespace pism_weigh
         public SettingsForm()
         {
             InitializeComponent();
+            Services.UIStyler.StyleForm(this, "系统设置");
             InitExtraDataGroups();
         }
 

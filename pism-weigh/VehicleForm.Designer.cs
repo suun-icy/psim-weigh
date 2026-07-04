@@ -157,6 +157,9 @@ namespace pism_weigh
 
             Controls.Add(groupEdit);
 
+            // 应用样式
+            Services.UIStyler.StyleDataGridView(dgvVehicles);
+
             this.Load += VehicleForm_Load;
         }
 

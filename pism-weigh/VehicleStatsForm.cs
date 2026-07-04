@@ -19,6 +19,7 @@ namespace pism_weigh
 
         private void VehicleStatsForm_Load(object sender, EventArgs e)
         {
+            Services.UIStyler.StyleForm(this, "车辆统计分析");
             dtpStart.Value = DateTime.Today.AddDays(-30);
             dtpEnd.Value = DateTime.Today;
             RefreshStats();

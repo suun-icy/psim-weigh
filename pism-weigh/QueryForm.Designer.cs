@@ -359,6 +359,13 @@ namespace pism_weigh
             this.ResumeLayout(false);
         }
 
+        /// <summary>在构造函数中应用全局样式（Designer不算构造函数体）</summary>
+        private void ApplyStyle()
+        {
+            Services.UIStyler.StyleForm(this, "称重记录查询");
+            Services.UIStyler.StyleDataGridView(dgvRecords);
+        }
+
         private System.Windows.Forms.Panel panelFilter;
         private System.Windows.Forms.Panel panelMain;
         private System.Windows.Forms.Panel panelBottom;
