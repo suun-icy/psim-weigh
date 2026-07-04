@@ -51,21 +51,48 @@ namespace pism_weigh
         private CapturedWeightType? lastCapturedWeightType;
 		private List<string> plateHistoryCache;
         private string _latestSourceUnit = "t";
+        private AppConfig _config;
 
 		public Form1()
         {
             InitializeComponent();
+            this.FormClosing += Form1_FormClosing;
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
             ApplyModernUiStyle();
-            //设置默认值
-            comboBox2.Text = "600";
-            comboBox3.Text = "8";
-            comboBox4.Text = "None";
-            comboBox5.Text = "1";
+            _config = AppConfig.Load();
+
+            // 加载串口列表
             comboBox1.Items.AddRange(System.IO.Ports.SerialPort.GetPortNames());
+
+            // 应用保存的配置
+            comboBox2.Text = _config.BaudRate > 0 ? _config.BaudRate.ToString() : "9600";
+            comboBox3.Text = _config.DataBits > 0 ? _config.DataBits.ToString() : "8";
+            comboBox4.Text = string.IsNullOrEmpty(_config.Parity) ? "None" : _config.Parity;
+            comboBox5.Text = string.IsNullOrEmpty(_config.StopBits) ? "1" : _config.StopBits;
+
+            // 如果配置中保存了串口号且当前可用，则选中
+            if (!string.IsNullOrEmpty(_config.ComPort))
+            {
+                for (int idx = 0; idx < comboBox1.Items.Count; idx++)
+                {
+                    if (comboBox1.Items[idx].ToString() == _config.ComPort)
+                    {
+                        comboBox1.SelectedIndex = idx;
+                        break;
+                    }
+                }
+            }
+
+            // 应用打印机配置
+            if (!string.IsNullOrEmpty(_config.PrinterName))
+            {
+                printService.SetPrinter(_config.PrinterName);
+            }
+
+            //加载车牌省份下拉
             comboBox7.Items.Add("皖");
             comboBox7.Items.Add("京");
             comboBox7.Items.Add("沪");
@@ -104,6 +131,22 @@ namespace pism_weigh
             comboBox8.Items.Add("先皮后毛");
             comboBox8.SelectedIndex = 0;
 			LoadPlateHistoryFromDatabase();
+
+            // 自动连接（如果配置了自动连接且串口可用）
+            if (_config.AutoConnect && !string.IsNullOrEmpty(_config.ComPort))
+            {
+                try
+                {
+                    if (comboBox1.Items.Count > 0 && comboBox1.SelectedIndex >= 0)
+                    {
+                        button1.PerformClick();
+                    }
+                }
+                catch
+                {
+                    // 自动连接失败不影响启动
+                }
+            }
 		}
 
         private void label1_Click(object sender, EventArgs e)
@@ -181,6 +224,9 @@ namespace pism_weigh
                     button1.BackColor = Color.Firebrick;
                     label6.Text = "串口已打开";
                     label6.ForeColor = Color.Green;
+
+                    // 保存串口配置
+                    SaveCurrentConfig();
                 }
             }
             catch (Exception ex)
@@ -1004,6 +1050,29 @@ namespace pism_weigh
                 button2.Enabled = true;
                 button4.Enabled = true;
             }
+        }
+
+        /// <summary>
+        /// 保存当前串口配置到本地
+        /// </summary>
+        private void SaveCurrentConfig()
+        {
+            _config.ComPort = comboBox1.Text;
+            int.TryParse(comboBox2.Text, out int baud);
+            _config.BaudRate = baud;
+            int.TryParse(comboBox3.Text, out int dataBits);
+            _config.DataBits = dataBits;
+            _config.Parity = comboBox4.Text;
+            _config.StopBits = comboBox5.Text;
+            _config.Save();
+        }
+
+        /// <summary>
+        /// 窗体关闭时保存配置
+        /// </summary>
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            SaveCurrentConfig();
         }
     }
 }

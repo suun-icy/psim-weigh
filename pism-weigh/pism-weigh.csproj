@@ -66,6 +66,7 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="HTTPS.cs" />
+    <Compile Include="Models\AppConfig.cs" />
     <Compile Include="Models\Customer.cs" />
     <Compile Include="Models\WeighRecord.cs" />
     <Compile Include="Models\ModifyHistory.cs" />
