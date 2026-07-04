@@ -38,10 +38,11 @@ namespace pism_weigh.Services
         {
             try
             {
-                var paperSize = new PaperSize("WeighSlip", 240, 93);
+                // PaperSize 单位是 1/100 英寸：240mm≈945, 93.1mm≈367
+                var paperSize = new PaperSize("WeighSlip", 945, 367);
                 paperSize.RawKind = (int)PaperKind.Custom;
                 _printDocument.DefaultPageSettings.PaperSize = paperSize;
-                _printDocument.DefaultPageSettings.Margins = new Margins(3, 3, 2, 2);
+                _printDocument.DefaultPageSettings.Margins = new Margins(10, 10, 8, 8);
             }
             catch { }
         }
