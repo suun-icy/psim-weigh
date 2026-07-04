@@ -163,27 +163,24 @@ namespace pism_weigh.Services
             float col4W = tableWidth * 0.38f;  // 右数据列
 
             using (var pen = new Pen(Color.Black, 0.3f))
-            using (var titleFont = new Font("宋体", 5f, FontStyle.Bold))       // 磅单标题 ≈16px
-            using (var labelFont = new Font("宋体", 3.5f, FontStyle.Regular))  // 标签文字 ≈12px
-            using (var valueFont = new Font("宋体", 3.5f, FontStyle.Regular))  // 数据文字
-            using (var timeFont = new Font("宋体", 3f, FontStyle.Regular))     // 时间行文字 ≈10px
+            using (var titleFont = new Font("宋体", 7f, FontStyle.Bold))       // 标题
+            using (var labelFont = new Font("宋体", 4.5f, FontStyle.Regular))  // 标签
+            using (var valueFont = new Font("宋体", 4.5f, FontStyle.Regular))  // 数据
+            using (var timeFont = new Font("宋体", 3.5f, FontStyle.Regular))   // 时间行
             {
-                // ===== 第1行：标题（有边框）=====
-                var titleRect = new RectangleF(x, y, tableWidth, 7f);
-                g.FillRectangle(Brushes.White, titleRect);
-                g.DrawRectangle(pen, x, y, tableWidth, 7f);
-
+                // ===== 第1行：标题（无边框，居中） =====
                 var titleSF = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+                var titleRect = new RectangleF(x, y, tableWidth, 9f);
                 g.DrawString("磅  单", titleFont, Brushes.Black, titleRect, titleSF);
-                y += 7f;
+                y += 9f;
 
                 // ===== 第2行：时间行（无边框）=====
                 var timeText = "时间  " + DateTime.Now.ToString("yyyy/MM/dd HH:mm");
                 var timeSize = g.MeasureString(timeText, timeFont);
                 g.DrawString(timeText, timeFont, Brushes.Black, x + 1f, y + 1f);
-                y += timeSize.Height + 1f;
+                y += timeSize.Height + 2f;
 
-                float rowH = 6f;
+                float rowH = 7f;
 
                 // ===== 第3行：车牌 | 数据 | 毛重 | 数据 =====
                 DrawFourColRow(g, pen, labelFont, valueFont, x, y, col1W, col2W, col3W, col4W, rowH,
