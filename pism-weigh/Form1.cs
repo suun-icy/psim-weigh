@@ -779,6 +779,14 @@ namespace pism_weigh
                     return;
                 }
 
+                // 检查是否已有最近完成的记录，避免重复保存
+                if (HasRecentCompletedRecord(manualPlate))
+                {
+                    var confirm = MessageBox.Show("该车牌在5分钟内有已完成的记录，是否继续保存？",
+                        "重复确认", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                    if (confirm != DialogResult.Yes) return;
+                }
+
                 var manualRecord = new WeighRecord
                 {
                     PlateNumber = manualPlate,
@@ -832,6 +840,14 @@ namespace pism_weigh
                     return;
                 }
 
+                // 检查是否已有最近完成的记录
+                if (HasRecentCompletedRecord(plate))
+                {
+                    var confirm = MessageBox.Show("该车牌在5分钟内有已完成的记录，是否继续保存？",
+                        "重复确认", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                    if (confirm != DialogResult.Yes) return;
+                }
+
                 var record = new WeighRecord
                 {
                     PlateNumber = plate,
@@ -859,6 +875,13 @@ namespace pism_weigh
 
                 MessageBox.Show("首次称重已保存，请进行第二次称重。");
                 textBox3.Text = "0";
+                return;
+            }
+
+            // 检查该记录是否已经完成，避免重复计算
+            if (openRecord.Status == WeighStatus.Completed)
+            {
+                MessageBox.Show("该车牌已有完成的称重记录，无需重复计算。");
                 return;
             }
 
@@ -942,10 +965,15 @@ namespace pism_weigh
             }
 
             if (!TryParseWeightText(textBox1.Text, "重车重量", out double roughWeight)
-                || !TryParseWeightText(textBox2.Text, "空车重量", out double tareWeight)
-                || !TryParseWeightText(textBox3.Text, "净重", out double netWeight))
+                || !TryParseWeightText(textBox2.Text, "空车重量", out double tareWeight))
             {
                 return;
+            }
+
+            double netWeight;
+            if (!TryParseWeightText(textBox3.Text, "净重", out netWeight) || netWeight <= 0)
+            {
+                netWeight = roughWeight - tareWeight;
             }
 
             if (netWeight < 0)
@@ -1288,6 +1316,21 @@ namespace pism_weigh
                 label6.ForeColor = System.Drawing.Color.Red;
                 button2.Enabled = true;
                 button4.Enabled = true;
+            }
+        }
+
+        private bool HasRecentCompletedRecord(string plateNumber)
+        {
+            try
+            {
+                var records = DatabaseHelper.SearchRecords(
+                    plateNumber: plateNumber,
+                    startDate: DateTime.Now.AddMinutes(-5));
+                return records.Any(r => r.Status == WeighStatus.Completed);
+            }
+            catch
+            {
+                return false;
             }
         }
 
