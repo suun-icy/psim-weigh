@@ -224,6 +224,15 @@ namespace pism_weigh
                     MessageBox.Show("请手动输入重车重量");
                     return;
                 }
+                if (TryParseWeightText(textBox1.Text, "重车重量", out double capturedManual))
+                {
+                    lastCapturedWeight = Convert.ToDecimal(capturedManual);
+                    lastCapturedWeightType = CapturedWeightType.Gross;
+                }
+                else
+                {
+                    return;
+                }
                 MessageBox.Show("重车重量已确认：" + textBox1.Text + " 吨");
                 return;
             }
@@ -402,6 +411,15 @@ namespace pism_weigh
                 {
                     System.Media.SystemSounds.Beep.Play();
                     MessageBox.Show("请手动输入空车重量");
+                    return;
+                }
+                if (TryParseWeightText(textBox2.Text, "空车重量", out double capturedManual))
+                {
+                    lastCapturedWeight = Convert.ToDecimal(capturedManual);
+                    lastCapturedWeightType = CapturedWeightType.Tare;
+                }
+                else
+                {
                     return;
                 }
                 MessageBox.Show("空车重量已确认：" + textBox2.Text + " 吨");
