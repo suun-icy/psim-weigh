@@ -155,7 +155,8 @@ namespace pism_weigh
 			this.comboBox5.FormattingEnabled = true;
 			this.comboBox5.Items.AddRange(new object[] {
             "1",
-            "0"});
+            "1.5",
+            "2"});
 			this.comboBox5.Location = new System.Drawing.Point(53, 110);
 			this.comboBox5.Name = "comboBox5";
 			this.comboBox5.Size = new System.Drawing.Size(121, 20);
