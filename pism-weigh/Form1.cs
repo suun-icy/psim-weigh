@@ -37,6 +37,7 @@ namespace pism_weigh
         string[] str = new string[50];
         int i = 0;
         private ScaleService scaleService = new ScaleService();
+        private PrintService printService = new PrintService();
         private const int StableReadThreshold = 3;
         private const double StableDeltaThreshold = 0.005;
         private const string WeightUnit = " t";
@@ -700,24 +701,6 @@ namespace pism_weigh
 
         private void button7_Click(object sender, EventArgs e)
         {
-            //没有用户信息
-            if (user.token == null || user.token.Equals(""))
-            {
-                //弹出登录界面
-                UserLogin userLogin = new UserLogin();
-                userLogin.ShowDialog();
-            }
-            //收集数据
-            PmsWeightinfo weightinfo = new PmsWeightinfo();
-            Boolean cargoComeOut = false;
-            if (radioButton3.Checked)
-            {
-                cargoComeOut = false;
-            }
-            else {
-                cargoComeOut = true;
-            }
-
             string cargoPlate = $"{comboBox7.Text}{textBox5.Text?.Trim()}";
             if (string.IsNullOrWhiteSpace(comboBox7.Text) || string.IsNullOrWhiteSpace(textBox5.Text))
             {
@@ -732,17 +715,15 @@ namespace pism_weigh
                 return;
             }
 
-            weightinfo.cargoPlate = cargoPlate;
-            weightinfo.roughWeight = roughWeight;
-            weightinfo.tare = tareWeight;
-            weightinfo.netWeight = netWeight;
-            weightinfo.psimType = textBox1.Text;
-            weightinfo.cargoComeOut = cargoComeOut;
+            if (netWeight < 0)
+            {
+                MessageBox.Show("净重不能为负数，无法打印。");
+                return;
+            }
+
+            bool cargoComeOut = !radioButton3.Checked; // false=购入, true=销售
+
             _printCount++;
-            weightinfo.printCount = _printCount;
-            weightinfo.printUser = user.userName;
-            weightinfo.createDate = new DateTime();
-            
             var record = DatabaseHelper.GetLatestOpenRecordByPlate(cargoPlate);
             if (record == null)
             {
@@ -763,28 +744,27 @@ namespace pism_weigh
             record.CompleteTime = DateTime.Now;
             record.PrintCount = _printCount;
             record.OperatorName = user.userName;
-            record.Remark = string.Format("LOCAL_ONLY|SRC_UNIT:{0}", _latestSourceUnit ?? "t");
-            record.IsUploaded = false;
+            record.Remark = string.Format("PRINTED|SRC_UNIT:{0}", _latestSourceUnit ?? "t");
             record.UpdateTime = DateTime.Now;
 
             if (!DatabaseHelper.SaveWeighRecord(record))
             {
-                MessageBox.Show("保存本地称重数据失败");
+                MessageBox.Show("保存称重数据失败");
                 return;
             }
 
-            MessageBox.Show("称重单已保存到本地 SQLite。");
+            // 打印磅单
+            try
+            {
+                printService.PrintPreview(record, PrintTemplate.Standard);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("打印预览失败：" + ex.Message + "\n\n数据已保存，可稍后重新打印。");
+            }
+
             EnsureCurrentPlateInHistory();
-
-            textBox1.Text = "";
-            textBox2.Text = "";
-            textBox3.Text = "";
-            textBox5.Text = "";
-			//打开浏览器登录界面
-			EnsureCurrentPlateInHistory();
-
-
-		}
+        }
 
         private void ApplyModernUiStyle()
         {
