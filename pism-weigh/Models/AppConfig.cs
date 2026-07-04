@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 
@@ -23,6 +24,13 @@ namespace pism_weigh.Models
         public string ServerUrl { get; set; } = "";
         public string PrinterName { get; set; } = "";
         public bool AutoConnect { get; set; } = false;
+
+        // 基础数据
+        public List<string> CargoTypes { get; set; } = new List<string>();
+        public List<string> Senders { get; set; } = new List<string>();
+        public List<string> Receivers { get; set; } = new List<string>();
+        public List<string> Drivers { get; set; } = new List<string>();
+        public List<string> Operators { get; set; } = new List<string>();
 
         /// <summary>
         /// 加载配置

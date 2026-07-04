@@ -106,6 +106,17 @@ namespace pism_weigh.Database
                         )";
                     ExecuteNonQuery(createCargoTypeTable);
 
+                    // 创建基础数据表（通用 key-value 存储发货单位/司机等）
+                    string createBasicDataTable = @"
+                        CREATE TABLE IF NOT EXISTS BasicData (
+                            Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            Category TEXT NOT NULL,
+                            Name TEXT NOT NULL,
+                            CreateTime DATETIME DEFAULT CURRENT_TIMESTAMP,
+                            UNIQUE(Category, Name)
+                        )";
+                    ExecuteNonQuery(createBasicDataTable);
+
                     string createRawWeightTable = @"
                         CREATE TABLE IF NOT EXISTS RawWeightLogs (
                             Id TEXT PRIMARY KEY,
@@ -717,6 +728,75 @@ namespace pism_weigh.Database
                 ReviewerName = row["ReviewerName"] == DBNull.Value ? null : row["ReviewerName"].ToString(),
                 ReviewTime = row["ReviewTime"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(row["ReviewTime"])
             };
+        }
+
+        // ===== 基础数据（BasicData 表）管理 =====
+
+        /// <summary>
+        /// 保存基础数据项（运输内容/发货单位/收货单位/司机/司磅员）
+        /// </summary>
+        public static bool SaveBasicData(string category, string name)
+        {
+            try
+            {
+                var sql = "INSERT OR IGNORE INTO BasicData (Category, Name) VALUES (@Category, @Name)";
+                return ExecuteNonQuery(sql,
+                    new SQLiteParameter("@Category", category),
+                    new SQLiteParameter("@Name", name)) >= 0;
+            }
+            catch { return false; }
+        }
+
+        /// <summary>
+        /// 删除基础数据项
+        /// </summary>
+        public static bool DeleteBasicData(string category, string name)
+        {
+            try
+            {
+                var sql = "DELETE FROM BasicData WHERE Category = @Category AND Name = @Name";
+                return ExecuteNonQuery(sql,
+                    new SQLiteParameter("@Category", category),
+                    new SQLiteParameter("@Name", name)) > 0;
+            }
+            catch { return false; }
+        }
+
+        /// <summary>
+        /// 获取指定类别的基础数据列表
+        /// </summary>
+        public static List<string> GetBasicData(string category)
+        {
+            var list = new List<string>();
+            try
+            {
+                var sql = "SELECT Name FROM BasicData WHERE Category = @Category ORDER BY Name";
+                var dt = ExecuteQuery(sql, new SQLiteParameter("@Category", category));
+                foreach (DataRow row in dt.Rows)
+                    list.Add(row["Name"].ToString());
+            }
+            catch { }
+            return list;
+        }
+
+        /// <summary>
+        /// 批量保存基础数据（删除旧数据+插入新数据）
+        /// </summary>
+        public static void SaveBasicDataBatch(string category, List<string> items)
+        {
+            try
+            {
+                // 删除旧数据
+                var deleteSql = "DELETE FROM BasicData WHERE Category = @Category";
+                ExecuteNonQuery(deleteSql, new SQLiteParameter("@Category", category));
+                // 插入新数据
+                foreach (var item in items)
+                {
+                    if (!string.IsNullOrWhiteSpace(item))
+                        SaveBasicData(category, item.Trim());
+                }
+            }
+            catch { }
         }
 
         #endregion

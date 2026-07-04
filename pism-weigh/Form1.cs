@@ -55,6 +55,7 @@ namespace pism_weigh
         private System.Windows.Forms.ComboBox cboCargo;
         private System.Windows.Forms.ComboBox cboDriver;
         private System.Windows.Forms.ComboBox cboReceiver;
+        private System.Windows.Forms.ComboBox cboSender;
         private System.Windows.Forms.ComboBox cboOperator;
 
 		public Form1()
@@ -66,8 +67,8 @@ namespace pism_weigh
 
         private void InitExtraControls()
         {
-            panel3.Height = 310;
-            this.Height = 600;
+            panel3.Height = 340;
+            this.Height = 630;
             panel6.Top = panel3.Bottom + 5;
 
             // 右侧按钮列
@@ -94,11 +95,11 @@ namespace pism_weigh
             comboBox8.Location = new System.Drawing.Point(270, 140);
             comboBox8.Size = new System.Drawing.Size(110, 24);
 
-            comboBoxPlateHistory.Location = new System.Drawing.Point(340, 245);
+            comboBoxPlateHistory.Location = new System.Drawing.Point(340, 275);
             comboBoxPlateHistory.Size = new System.Drawing.Size(225, 24);
 
-            checkBoxManualMode.Location = new System.Drawing.Point(10, 280);
-            labelManualTip.Location = new System.Drawing.Point(90, 282);
+            checkBoxManualMode.Location = new System.Drawing.Point(10, 310);
+            labelManualTip.Location = new System.Drawing.Point(90, 312);
 
             // ===== 新增字段 (ComboBox 替代 TextBox) =====
             // 运输内容
@@ -125,15 +126,21 @@ namespace pism_weigh
             panel3.Controls.Add(lblOperator);
             panel3.Controls.Add(cboOperator);
 
+            // 发货单位
+            var lblSender = CreateLabel("发货单位", 8, 230);
+            cboSender = CreateDropDown(81, 227, 484);
+            panel3.Controls.Add(lblSender);
+            panel3.Controls.Add(cboSender);
+
             // 历史车牌标签
-            var lblPlateHistory = CreateLabel("历史车牌", 278, 248);
+            var lblPlateHistory = CreateLabel("历史车牌", 278, 278);
             panel3.Controls.Add(lblPlateHistory);
 
             // 查询按钮
             var btnQuery = new System.Windows.Forms.Button
             {
                 Text = "查询记录",
-                Location = new System.Drawing.Point(490, 278),
+                Location = new System.Drawing.Point(490, 308),
                 Size = new System.Drawing.Size(75, 25),
                 Font = new System.Drawing.Font("Microsoft YaHei UI", 8F),
                 UseVisualStyleBackColor = true
@@ -145,7 +152,7 @@ namespace pism_weigh
             var btnSettings = new System.Windows.Forms.Button
             {
                 Text = "设置",
-                Location = new System.Drawing.Point(408, 278),
+                Location = new System.Drawing.Point(408, 308),
                 Size = new System.Drawing.Size(75, 25),
                 Font = new System.Drawing.Font("Microsoft YaHei UI", 8F),
                 UseVisualStyleBackColor = true
@@ -194,15 +201,29 @@ namespace pism_weigh
                 var cargoSet = new HashSet<string>();
                 var driverSet = new HashSet<string>();
                 var receiverSet = new HashSet<string>();
+                var senderSet = new HashSet<string>();
                 var operatorSet = new HashSet<string>();
 
+                // 从历史记录聚合
                 foreach (var r in records)
                 {
                     if (!string.IsNullOrWhiteSpace(r.CargoType)) cargoSet.Add(r.CargoType);
                     if (!string.IsNullOrWhiteSpace(r.DriverName)) driverSet.Add(r.DriverName);
                     if (!string.IsNullOrWhiteSpace(r.Receiver)) receiverSet.Add(r.Receiver);
+                    if (!string.IsNullOrWhiteSpace(r.Sender)) senderSet.Add(r.Sender);
                     if (!string.IsNullOrWhiteSpace(r.OperatorName)) operatorSet.Add(r.OperatorName);
                 }
+
+                // 同时从数据库基础数据表补充
+                try
+                {
+                    foreach (var item in DatabaseHelper.GetBasicData("CargoType")) cargoSet.Add(item);
+                    foreach (var item in DatabaseHelper.GetBasicData("Driver")) driverSet.Add(item);
+                    foreach (var item in DatabaseHelper.GetBasicData("Receiver")) receiverSet.Add(item);
+                    foreach (var item in DatabaseHelper.GetBasicData("Sender")) senderSet.Add(item);
+                    foreach (var item in DatabaseHelper.GetBasicData("Operator")) operatorSet.Add(item);
+                }
+                catch { }
 
                 cboCargo.Items.Clear();
                 cboCargo.Items.AddRange(cargoSet.OrderBy(x => x).ToArray());
@@ -210,6 +231,8 @@ namespace pism_weigh
                 cboDriver.Items.AddRange(driverSet.OrderBy(x => x).ToArray());
                 cboReceiver.Items.Clear();
                 cboReceiver.Items.AddRange(receiverSet.OrderBy(x => x).ToArray());
+                cboSender.Items.Clear();
+                cboSender.Items.AddRange(senderSet.OrderBy(x => x).ToArray());
                 cboOperator.Items.Clear();
                 cboOperator.Items.AddRange(operatorSet.OrderBy(x => x).ToArray());
             }
@@ -224,6 +247,7 @@ namespace pism_weigh
             var selectedCargo = cboCargo.Text;
             var selectedDriver = cboDriver.Text;
             var selectedReceiver = cboReceiver.Text;
+            var selectedSender = cboSender.Text;
             var selectedOperator = cboOperator.Text;
             var selectedPlate = comboBoxPlateHistory.Text;
 
@@ -234,6 +258,7 @@ namespace pism_weigh
             try { cboCargo.Text = selectedCargo; } catch { }
             try { cboDriver.Text = selectedDriver; } catch { }
             try { cboReceiver.Text = selectedReceiver; } catch { }
+            try { cboSender.Text = selectedSender; } catch { }
             try { cboOperator.Text = selectedOperator; } catch { }
             try { comboBoxPlateHistory.Text = selectedPlate; } catch { }
         }
@@ -804,6 +829,7 @@ namespace pism_weigh
                     CargoType = cboCargo.Text.Trim(),
                     DriverName = cboDriver.Text.Trim(),
                     Receiver = cboReceiver.Text.Trim(),
+                    Sender = cboSender.Text.Trim(),
                     Remark = "[MANUAL_MODE]"
                 };
 
@@ -865,6 +891,7 @@ namespace pism_weigh
                     CargoType = cboCargo.Text.Trim(),
                     DriverName = cboDriver.Text.Trim(),
                     Receiver = cboReceiver.Text.Trim(),
+                    Sender = cboSender.Text.Trim(),
                 };
 
                 if (!DatabaseHelper.SaveWeighRecord(record))
@@ -936,6 +963,11 @@ namespace pism_weigh
             openRecord.SecondWeighTime = DateTime.Now;
             openRecord.CompleteTime = DateTime.Now;
             openRecord.UpdateTime = DateTime.Now;
+            openRecord.CargoType = cboCargo.Text.Trim();
+            openRecord.DriverName = cboDriver.Text.Trim();
+            openRecord.Receiver = cboReceiver.Text.Trim();
+            openRecord.Sender = cboSender.Text.Trim();
+            openRecord.OperatorName = string.IsNullOrWhiteSpace(cboOperator.Text) ? user.userName : cboOperator.Text.Trim();
 
             if (!DatabaseHelper.SaveWeighRecord(openRecord))
             {
@@ -1006,6 +1038,7 @@ namespace pism_weigh
             record.CargoType = cboCargo.Text.Trim();
             record.DriverName = cboDriver.Text.Trim();
             record.Receiver = cboReceiver.Text.Trim();
+            record.Sender = cboSender.Text.Trim();
             record.Remark = string.Format("PRINTED|SRC_UNIT:{0}", _latestSourceUnit ?? "t");
             record.UpdateTime = DateTime.Now;
 
@@ -1016,9 +1049,9 @@ namespace pism_weigh
                 return;
             }
 
-            // 直接显示打印预览
+            // 显示打印预览，用户点击"打印"后自动按 24cm×9.31cm 纸张输出
             var printService = new PrintService();
-            printService.PrintPreview(record, PrintTemplate.WeighSlip240x93);
+            printService.PrintPreview(record);
 
             // 打印成功后更新打印次数
             record.PrintCount = record.PrintCount + 1;

@@ -160,7 +160,122 @@ namespace pism_weigh
         {
             if (e.RowIndex < 0) return;
             var record = _records[e.RowIndex];
-            ShowDetail(record);
+            OpenEditForm(record);
+        }
+
+        private void btnEdit_Click(object sender, EventArgs e)
+        {
+            var record = GetSelectedRecord();
+            if (record == null) return;
+            OpenEditForm(record);
+        }
+
+        private void btnExport_Click(object sender, EventArgs e)
+        {
+            if (_records == null || _records.Count == 0)
+            {
+                MessageBox.Show("没有可导出的数据。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            var saveDialog = new SaveFileDialog
+            {
+                Filter = "CSV 文件 (*.csv)|*.csv|所有文件 (*.*)|*.*",
+                DefaultExt = "csv",
+                FileName = string.Format("称重记录_{0:yyyyMMddHHmmss}.csv", DateTime.Now),
+                Title = "导出称重记录"
+            };
+
+            if (saveDialog.ShowDialog() != DialogResult.OK) return;
+
+            try
+            {
+                using (var writer = new System.IO.StreamWriter(saveDialog.FileName, false, System.Text.Encoding.UTF8))
+                {
+                    // 写入 BOM（确保 Excel 正确识别 UTF-8 中文）
+                    writer.Write('\uFEFF');
+                    // 写入表头
+                    writer.WriteLine(string.Join(",",
+                        "\"编号\"", "\"车牌\"", "\"业务类型\"", "\"状态\"",
+                        "\"毛重(kg)\"", "\"皮重(kg)\"", "\"净重(kg)\"",
+                        "\"运输内容\"", "\"发货单位\"", "\"收货单位\"",
+                        "\"司机\"", "\"司磅员\"", "\"首次称重时间\"",
+                        "\"二次称重时间\"", "\"完成时间\"", "\"打印次数\"", "\"备注\""));
+
+                    foreach (var r in _records)
+                    {
+                        writer.WriteLine(string.Join(",",
+                            CsvCell(r.Id.ToString()),
+                            CsvCell(r.PlateNumber ?? ""),
+                            CsvCell(GetBizText(r.BusinessType)),
+                            CsvCell(GetStatusText(r.Status)),
+                            CsvCell(r.GrossWeight.ToString("F0")),
+                            CsvCell(r.TareWeight.ToString("F0")),
+                            CsvCell(r.NetWeight.ToString("F0")),
+                            CsvCell(r.CargoType ?? ""),
+                            CsvCell(r.Sender ?? ""),
+                            CsvCell(r.Receiver ?? ""),
+                            CsvCell(r.DriverName ?? ""),
+                            CsvCell(r.OperatorName ?? ""),
+                            CsvCell(FormatTimeCsv(r.FirstWeighTime)),
+                            CsvCell(FormatTimeCsv(r.SecondWeighTime)),
+                            CsvCell(FormatTimeCsv(r.CompleteTime)),
+                            CsvCell(r.PrintCount.ToString()),
+                            CsvCell(r.Remark ?? "")
+                        ));
+                    }
+                }
+
+                MessageBox.Show("导出成功！\n文件: " + saveDialog.FileName, "成功",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("导出失败: " + ex.Message, "错误",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private static string CsvCell(string text)
+        {
+            return "\"" + (text ?? "").Replace("\"", "\"\"") + "\"";
+        }
+
+        private static string FormatTimeCsv(DateTime? dt)
+        {
+            if (dt == null || dt.Value == DateTime.MinValue) return "";
+            return dt.Value.ToString("yyyy-MM-dd HH:mm:ss");
+        }
+
+        private static string GetBizText(BusinessType t)
+        {
+            switch (t)
+            {
+                case BusinessType.PurchaseIn: return "采购入库";
+                case BusinessType.SalesOut: return "销售出库";
+                case BusinessType.Transfer: return "内部调拨";
+                default: return "其他";
+            }
+        }
+
+        private static string GetStatusText(WeighStatus s)
+        {
+            switch (s)
+            {
+                case WeighStatus.FirstWeigh: return "首次称重";
+                case WeighStatus.Completed: return "已完成";
+                case WeighStatus.Cancelled: return "已作废";
+                default: return s.ToString();
+            }
+        }
+
+        private void OpenEditForm(WeighRecord record)
+        {
+            var editForm = new RecordEditForm(record);
+            if (editForm.ShowDialog() == DialogResult.OK)
+            {
+                btnSearch_Click(this, EventArgs.Empty); // 刷新列表
+            }
         }
 
         private void btnDetail_Click(object sender, EventArgs e)
@@ -210,7 +325,7 @@ namespace pism_weigh
             if (confirm != DialogResult.Yes) return;
 
             var service = new PrintService();
-            service.PrintPreview(record, PrintTemplate.WeighSlip240x93);
+            service.PrintPreviewWithPrinterDialog(record);
         }
 
         private WeighRecord GetSelectedRecord()

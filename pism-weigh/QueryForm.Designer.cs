@@ -39,6 +39,8 @@ namespace pism_weigh
             this.panelBottom = new System.Windows.Forms.Panel();
             this.lblSummary = new System.Windows.Forms.Label();
             this.btnDetail = new System.Windows.Forms.Button();
+            this.btnEdit = new System.Windows.Forms.Button();
+            this.btnExport = new System.Windows.Forms.Button();
             this.btnReprint = new System.Windows.Forms.Button();
             this.btnClose = new System.Windows.Forms.Button();
             this.panelFilter.SuspendLayout();
@@ -264,6 +266,8 @@ namespace pism_weigh
             this.panelBottom.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panelBottom.Controls.Add(this.btnClose);
             this.panelBottom.Controls.Add(this.btnReprint);
+            this.panelBottom.Controls.Add(this.btnExport);
+            this.panelBottom.Controls.Add(this.btnEdit);
             this.panelBottom.Controls.Add(this.btnDetail);
             this.panelBottom.Controls.Add(this.lblSummary);
             this.panelBottom.Dock = System.Windows.Forms.DockStyle.Bottom;
@@ -285,7 +289,7 @@ namespace pism_weigh
             // 
             // btnDetail
             // 
-            this.btnDetail.Location = new System.Drawing.Point(650, 12);
+            this.btnDetail.Location = new System.Drawing.Point(563, 12);
             this.btnDetail.Name = "btnDetail";
             this.btnDetail.Size = new System.Drawing.Size(75, 28);
             this.btnDetail.TabIndex = 1;
@@ -293,11 +297,31 @@ namespace pism_weigh
             this.btnDetail.UseVisualStyleBackColor = true;
             this.btnDetail.Click += new System.EventHandler(this.btnDetail_Click);
             // 
+            // btnEdit
+            // 
+            this.btnEdit.Location = new System.Drawing.Point(650, 12);
+            this.btnEdit.Name = "btnEdit";
+            this.btnEdit.Size = new System.Drawing.Size(75, 28);
+            this.btnEdit.TabIndex = 4;
+            this.btnEdit.Text = "编辑/作废";
+            this.btnEdit.UseVisualStyleBackColor = true;
+            this.btnEdit.Click += new System.EventHandler(this.btnEdit_Click);
+            // 
+            // btnExport
+            // 
+            this.btnExport.Location = new System.Drawing.Point(735, 12);
+            this.btnExport.Name = "btnExport";
+            this.btnExport.Size = new System.Drawing.Size(75, 28);
+            this.btnExport.TabIndex = 5;
+            this.btnExport.Text = "导出";
+            this.btnExport.UseVisualStyleBackColor = true;
+            this.btnExport.Click += new System.EventHandler(this.btnExport_Click);
+            // 
             // btnReprint
             // 
-            this.btnReprint.Location = new System.Drawing.Point(735, 12);
+            this.btnReprint.Location = new System.Drawing.Point(820, 12);
             this.btnReprint.Name = "btnReprint";
-            this.btnReprint.Size = new System.Drawing.Size(75, 28);
+            this.btnReprint.Size = new System.Drawing.Size(60, 28);
             this.btnReprint.TabIndex = 2;
             this.btnReprint.Text = "重打";
             this.btnReprint.UseVisualStyleBackColor = true;
@@ -305,7 +329,7 @@ namespace pism_weigh
             // 
             // btnClose
             // 
-            this.btnClose.Location = new System.Drawing.Point(820, 12);
+            this.btnClose.Location = new System.Drawing.Point(888, 12);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(65, 28);
             this.btnClose.TabIndex = 3;
@@ -351,6 +375,8 @@ namespace pism_weigh
         private System.Windows.Forms.Button btnSearch;
         private System.Windows.Forms.Button btnReset;
         private System.Windows.Forms.Button btnDetail;
+        private System.Windows.Forms.Button btnEdit;
+        private System.Windows.Forms.Button btnExport;
         private System.Windows.Forms.Button btnReprint;
         private System.Windows.Forms.Button btnClose;
         private System.Windows.Forms.Label label1;

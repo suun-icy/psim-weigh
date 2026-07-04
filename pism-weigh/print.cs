@@ -149,8 +149,8 @@ namespace pism_weigh
             }
 
             var service = new PrintService();
-            if (!service.PrintPreviewWithDialog(record, PrintTemplate.WeighSlip240x93))
-                return; // 用户取消打印
+            if (!service.PrintPreviewWithPrinterDialog(record))
+                return; // 用户取消打印机选择
 
             record.PrintCount += 1;
             record.UpdateTime = DateTime.Now;
