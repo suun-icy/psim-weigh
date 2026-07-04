@@ -1176,6 +1176,52 @@ namespace pism_weigh.Database
             return 0;
         }
 
+        // ===== 车辆统计分析 =====
+
+        public static List<VehicleStatItem> GetVehicleStats(DateTime start, DateTime end)
+        {
+            var list = new List<VehicleStatItem>();
+            try
+            {
+                var sql = @"
+                    SELECT w.PlateNumber,
+                        v.VehicleType, v.OwnerName,
+                        COUNT(*) as WeighCount,
+                        SUM(w.GrossWeight) as TotalGross, SUM(w.TareWeight) as TotalTare, SUM(w.NetWeight) as TotalNet,
+                        ROUND(AVG(w.NetWeight), 2) as AvgNet, MAX(w.NetWeight) as MaxNet,
+                        MIN(w.FirstWeighTime) as FirstWeigh, MAX(w.CompleteTime) as LastWeigh,
+                        SUM(w.PrintCount) as TotalPrints
+                    FROM WeighRecords w
+                    LEFT JOIN Vehicles v ON v.PlateNumber = w.PlateNumber
+                    WHERE w.Status = 2 AND w.CompleteTime >= @Start AND w.CompleteTime <= @End
+                    GROUP BY w.PlateNumber
+                    ORDER BY TotalNet DESC";
+                var dt = ExecuteQuery(sql,
+                    new SQLiteParameter("@Start", start),
+                    new SQLiteParameter("@End", end.AddDays(1)));
+                foreach (DataRow row in dt.Rows)
+                {
+                    list.Add(new VehicleStatItem
+                    {
+                        PlateNumber = row["PlateNumber"].ToString(),
+                        VehicleType = row["VehicleType"] == DBNull.Value ? "" : row["VehicleType"].ToString(),
+                        OwnerName = row["OwnerName"] == DBNull.Value ? "" : row["OwnerName"].ToString(),
+                        WeighCount = Convert.ToInt32(row["WeighCount"]),
+                        TotalGross = Convert.ToDecimal(row["TotalGross"]),
+                        TotalTare = Convert.ToDecimal(row["TotalTare"]),
+                        TotalNet = Convert.ToDecimal(row["TotalNet"]),
+                        AvgNet = Convert.ToDecimal(row["AvgNet"]),
+                        MaxNet = Convert.ToDecimal(row["MaxNet"]),
+                        FirstWeigh = row["FirstWeigh"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(row["FirstWeigh"]),
+                        LastWeigh = row["LastWeigh"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(row["LastWeigh"]),
+                        TotalPrints = Convert.ToInt32(row["TotalPrints"])
+                    });
+                }
+            }
+            catch { }
+            return list;
+        }
+
         #endregion
     }
 }

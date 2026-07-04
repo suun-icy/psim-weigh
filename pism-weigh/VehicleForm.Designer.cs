@@ -45,13 +45,15 @@ namespace pism_weigh
             txtSearch = new TextBox { Location = new Point(45, 7), Size = new Size(200, 24) };
             btnSearch = new Button { Text = "搜索", Location = new Point(252, 6), Size = new Size(60, 28), UseVisualStyleBackColor = true };
             btnReset = new Button { Text = "重置", Location = new Point(318, 6), Size = new Size(60, 28), UseVisualStyleBackColor = true };
-            btnImport = new Button { Text = "从称重记录导入", Location = new Point(600, 6), Size = new Size(120, 28), UseVisualStyleBackColor = true };
-            lblCount = new Label { Text = "共 0 辆车", Location = new Point(740, 10), Size = new Size(100, 20) };
+            btnImport = new Button { Text = "从称重记录导入", Location = new Point(470, 6), Size = new Size(120, 28), UseVisualStyleBackColor = true };
+            var btnStats = new Button { Text = "车辆统计", Location = new Point(596, 6), Size = new Size(80, 28), UseVisualStyleBackColor = true };
+            lblCount = new Label { Text = "共 0 辆车", Location = new Point(690, 10), Size = new Size(100, 20) };
             btnClose = new Button { Text = "关闭", Location = new Point(860, 6), Size = new Size(65, 28), UseVisualStyleBackColor = true };
-            pnlSearch.Controls.AddRange(new Control[] { lblSearch, txtSearch, btnSearch, btnReset, btnImport, lblCount, btnClose });
+            pnlSearch.Controls.AddRange(new Control[] { lblSearch, txtSearch, btnSearch, btnReset, btnImport, btnStats, lblCount, btnClose });
             btnSearch.Click += (s, e) => RefreshList();
             btnReset.Click += (s, e) => { txtSearch.Text = ""; RefreshList(); };
             btnImport.Click += btnImport_Click;
+            btnStats.Click += (s, e) => { new VehicleStatsForm().ShowDialog(); };
             btnClose.Click += btnClose_Click;
             Controls.Add(pnlSearch);
 

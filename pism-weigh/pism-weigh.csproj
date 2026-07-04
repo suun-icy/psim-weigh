@@ -103,6 +103,7 @@
       <DependentUpon>VehicleForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Models\TareRecord.cs" />
+    <Compile Include="Models\VehicleStatItem.cs" />
     <Compile Include="Models\VehicleLog.cs" />
     <Compile Include="TareManageForm.cs">
       <SubType>Form</SubType>
@@ -115,6 +116,12 @@
     </Compile>
     <Compile Include="VehicleLogForm.Designer.cs">
       <DependentUpon>VehicleLogForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="VehicleStatsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="VehicleStatsForm.Designer.cs">
+      <DependentUpon>VehicleStatsForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Models\Vehicle.cs" />
     <Compile Include="print.cs">
