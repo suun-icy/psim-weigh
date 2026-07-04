@@ -208,14 +208,17 @@ namespace pism_weigh
             var selectedDriver = cboDriver.Text;
             var selectedReceiver = cboReceiver.Text;
             var selectedOperator = cboOperator.Text;
+            var selectedPlate = comboBoxPlateHistory.Text;
 
             PopulateDropdowns();
+            LoadPlateHistoryFromDatabase();
 
             // 恢复选中的文本
             try { cboCargo.Text = selectedCargo; } catch { }
             try { cboDriver.Text = selectedDriver; } catch { }
             try { cboReceiver.Text = selectedReceiver; } catch { }
             try { cboOperator.Text = selectedOperator; } catch { }
+            try { comboBoxPlateHistory.Text = selectedPlate; } catch { }
         }
 
         private void Form1_Load(object sender, EventArgs e)
