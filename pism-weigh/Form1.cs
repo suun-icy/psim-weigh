@@ -888,6 +888,7 @@ namespace pism_weigh
                     Remark = "[MANUAL_MODE]" + tareSource
                 };
 
+                AutoLinkVehicle(manualRecord);
                 if (!DatabaseHelper.SaveWeighRecord(manualRecord))
                 {
                     MessageBox.Show("手动称重保存失败。");
@@ -1375,6 +1376,23 @@ namespace pism_weigh
                 button4.Enabled = true;
                 comboBox8.Enabled = true;
             }
+        }
+
+        /// <summary>
+        /// 自动关联车辆档案：按车牌查找 Vehicles 表，写入 VehicleId
+        /// </summary>
+        private void AutoLinkVehicle(WeighRecord record)
+        {
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(record.PlateNumber) && string.IsNullOrEmpty(record.VehicleId))
+                {
+                    var vehicle = DatabaseHelper.GetVehicleByPlate(record.PlateNumber.Trim());
+                    if (vehicle != null)
+                        record.VehicleId = vehicle.Id;
+                }
+            }
+            catch { }
         }
 
 		private void EnsureCurrentPlateInHistory()

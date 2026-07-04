@@ -162,6 +162,9 @@ namespace pism_weigh.Database
                     string createTareIdx = "CREATE INDEX IF NOT EXISTS idx_tare_plate ON VehicleTareRecords(PlateNumber)";
                     ExecuteNonQuery(createTareIdx);
 
+                    // 2.3: WeighRecords 新增 VehicleId 列（幂等）
+                    try { ExecuteNonQuery("ALTER TABLE WeighRecords ADD COLUMN VehicleId TEXT"); } catch { }
+
                     string createRawWeightTable = @"
                         CREATE TABLE IF NOT EXISTS RawWeightLogs (
                             Id TEXT PRIMARY KEY,
@@ -268,13 +271,13 @@ namespace pism_weigh.Database
                      CargoType, Sender, Receiver, DriverName, DriverPhone, BusinessType, Status,
                      FirstWeighTime, SecondWeighTime, CompleteTime, OperatorId, OperatorName,
                      Remark, PrintCount, IsUploaded, CreateTime, UpdateTime, Category, 
-                     ModifyHistory, ReviewerId, ReviewerName, ReviewTime)
+                     ModifyHistory, ReviewerId, ReviewerName, ReviewTime, VehicleId)
                     VALUES 
                     (@Id, @PlateNumber, @Province, @PlateCode, @GrossWeight, @TareWeight, @NetWeight,
                      @CargoType, @Sender, @Receiver, @DriverName, @DriverPhone, @BusinessType, @Status,
                      @FirstWeighTime, @SecondWeighTime, @CompleteTime, @OperatorId, @OperatorName,
                      @Remark, @PrintCount, @IsUploaded, @CreateTime, @UpdateTime, @Category, 
-                     @ModifyHistory, @ReviewerId, @ReviewerName, @ReviewTime)";
+                     @ModifyHistory, @ReviewerId, @ReviewerName, @ReviewTime, @VehicleId)";
 
                 var parameters = new SQLiteParameter[]
                 {
@@ -306,7 +309,8 @@ namespace pism_weigh.Database
                     new SQLiteParameter("@ModifyHistory", record.ModifyHistory ?? (string)null),
                     new SQLiteParameter("@ReviewerId", record.ReviewerId ?? (string)null),
                     new SQLiteParameter("@ReviewerName", record.ReviewerName ?? (string)null),
-                    new SQLiteParameter("@ReviewTime", record.ReviewTime ?? (object)DBNull.Value)
+                    new SQLiteParameter("@ReviewTime", record.ReviewTime ?? (object)DBNull.Value),
+                    new SQLiteParameter("@VehicleId", (object)record.VehicleId ?? DBNull.Value)
                 };
 
                 return ExecuteNonQuery(sql, parameters) > 0;

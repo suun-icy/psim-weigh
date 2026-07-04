@@ -157,6 +157,11 @@ namespace pism_weigh.Models
         public DateTime? ReviewTime { get; set; }
         
         /// <summary>
+        /// 关联车辆档案 ID（Vehicles 表外键）
+        /// </summary>
+        public string VehicleId { get; set; }
+        
+        /// <summary>
         /// 构造函数
         /// </summary>
         public WeighRecord()
