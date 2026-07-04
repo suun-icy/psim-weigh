@@ -17,6 +17,44 @@ namespace pism_weigh
         public QueryForm()
         {
             InitializeComponent();
+            dgvRecords.AutoGenerateColumns = true;
+            dgvRecords.DataBindingComplete += DgvRecords_DataBindingComplete;
+        }
+
+        private void DgvRecords_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
+        {
+            var headers = new Dictionary<string, string>
+            {
+                { "Id", "编号" },
+                { "PlateNumber", "车牌" },
+                { "Province", "省份" },
+                { "PlateCode", "车牌号" },
+                { "GrossWeight", "毛重(kg)" },
+                { "TareWeight", "皮重(kg)" },
+                { "NetWeight", "净重(kg)" },
+                { "CargoType", "运输内容" },
+                { "Sender", "发货单位" },
+                { "Receiver", "收货单位" },
+                { "DriverName", "司机" },
+                { "DriverPhone", "电话" },
+                { "BusinessType", "业务类型" },
+                { "Status", "状态" },
+                { "FirstWeighTime", "首次称重" },
+                { "SecondWeighTime", "二次称重" },
+                { "CompleteTime", "完成时间" },
+                { "OperatorName", "司磅员" },
+                { "PrintCount", "打印次数" },
+                { "Remark", "备注" },
+                { "CreateTime", "创建时间" }
+            };
+
+            foreach (DataGridViewColumn col in dgvRecords.Columns)
+            {
+                if (headers.TryGetValue(col.DataPropertyName, out string header))
+                {
+                    col.HeaderText = header;
+                }
+            }
         }
 
         private void QueryForm_Load(object sender, EventArgs e)
