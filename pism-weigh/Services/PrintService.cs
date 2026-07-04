@@ -163,16 +163,16 @@ namespace pism_weigh.Services
             float col4W = tableWidth * 0.38f;  // 右数据列
 
             using (var pen = new Pen(Color.Black, 0.3f))
-            using (var titleFont = new Font("宋体", 9f, FontStyle.Bold))       // 标题
-            using (var labelFont = new Font("宋体", 5.5f, FontStyle.Regular))  // 标签
-            using (var valueFont = new Font("宋体", 5.5f, FontStyle.Regular))  // 数据
-            using (var timeFont = new Font("宋体", 4.5f, FontStyle.Regular))   // 时间行
+            using (var titleFont = new Font("宋体", 13.5f, FontStyle.Bold))     // 标题 +50%
+            using (var labelFont = new Font("宋体", 8.25f, FontStyle.Regular))  // 标签 +50%
+            using (var valueFont = new Font("宋体", 8.25f, FontStyle.Regular))  // 数据 +50%
+            using (var timeFont = new Font("宋体", 6.75f, FontStyle.Regular))   // 时间行 +50%
             {
                 // ===== 第1行：标题（无边框，居中） =====
                 var titleSF = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-                var titleRect = new RectangleF(x, y, tableWidth, 11f);
+                var titleRect = new RectangleF(x, y, tableWidth, 17f);
                 g.DrawString("磅  单", titleFont, Brushes.Black, titleRect, titleSF);
-                y += 11f;
+                y += 17f;
 
                 // ===== 第2行：时间行（无边框）=====
                 var timeText = "时间  " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
@@ -180,7 +180,7 @@ namespace pism_weigh.Services
                 g.DrawString(timeText, timeFont, Brushes.Black, x + 1f, y + 1f);
                 y += timeSize.Height + 2f;
 
-                float rowH = 9f;
+                float rowH = 13f;
 
                 // ===== 第3行：车牌 | 数据 | 毛重 | 数据 =====
                 DrawFourColRow(g, pen, labelFont, valueFont, x, y, col1W, col2W, col3W, col4W, rowH,
@@ -218,10 +218,10 @@ namespace pism_weigh.Services
                     "", "");
                 y += rowH;
 
-                // ===== 第9行：司磅员 | 数据 | (空) | (空) =====
+                // ===== 第9行：(空) | (空) | 司磅员 | 数据 =====
                 DrawFourColRow(g, pen, labelFont, valueFont, x, y, col1W, col2W, col3W, col4W, rowH,
-                    "司磅员", _record.OperatorName ?? "",
-                    "", "");
+                    "", "",
+                    "司磅员", _record.OperatorName ?? "");
                 y += rowH;
             }
 
