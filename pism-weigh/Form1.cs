@@ -165,7 +165,7 @@ namespace pism_weigh
             var btnQuery = new System.Windows.Forms.Button
             {
                 Text = "查询记录",
-                Location = new System.Drawing.Point(490, 308),
+                Location = new System.Drawing.Point(572, 308),
                 Size = new System.Drawing.Size(75, 25),
                 Font = new System.Drawing.Font("Microsoft YaHei UI", 8F),
                 UseVisualStyleBackColor = true
@@ -201,6 +201,18 @@ namespace pism_weigh
             };
             btnVehicles.Click += (s, e) => { new VehicleForm().ShowDialog(); };
             panel3.Controls.Add(btnVehicles);
+
+            // 进出记录按钮
+            var btnVLog = new System.Windows.Forms.Button
+            {
+                Text = "进出记录",
+                Location = new System.Drawing.Point(490, 308),
+                Size = new System.Drawing.Size(75, 25),
+                Font = new System.Drawing.Font("Microsoft YaHei UI", 8F),
+                UseVisualStyleBackColor = true
+            };
+            btnVLog.Click += (s, e) => { new VehicleLogForm().ShowDialog(); };
+            panel3.Controls.Add(btnVLog);
 
             // 填充下拉数据
             PopulateDropdowns();
@@ -895,6 +907,8 @@ namespace pism_weigh
                     return;
                 }
 
+                LogVehicleEntryExit(manualRecord, true);
+
                 textBox3.Text = manualNetWeight.ToString("0.###");
                 RefreshDropdowns();
                 MessageBox.Show("称重完成，净重：" + textBox3.Text + " 吨（已保存）");
@@ -1030,6 +1044,8 @@ namespace pism_weigh
                 MessageBox.Show("第二次称重保存失败。");
                 return;
             }
+
+            LogVehicleEntryExit(openRecord, true);
 
             textBox1.Text = grossWeight.ToString("0.###");
             textBox2.Text = tareWeight.ToString("0.###");
@@ -1390,6 +1406,45 @@ namespace pism_weigh
                     var vehicle = DatabaseHelper.GetVehicleByPlate(record.PlateNumber.Trim());
                     if (vehicle != null)
                         record.VehicleId = vehicle.Id;
+                }
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// 称重完成时自动写入进出场日志
+        /// </summary>
+        private void LogVehicleEntryExit(WeighRecord record, bool isCompleted)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(record.PlateNumber)) return;
+                var op = string.IsNullOrWhiteSpace(cboOperator.Text) ? user.userName : cboOperator.Text.Trim();
+
+                if (isCompleted)
+                {
+                    DatabaseHelper.SaveVehicleLog(new Models.VehicleLog
+                    {
+                        PlateNumber = record.PlateNumber,
+                        Direction = "In",
+                        LogTime = record.FirstWeighTime ?? DateTime.Now,
+                        RelatedWeighId = record.Id,
+                        GrossWeight = record.GrossWeight,
+                        TareWeight = record.TareWeight,
+                        OperatorName = op,
+                        Remark = "称重完成-进场"
+                    });
+                    DatabaseHelper.SaveVehicleLog(new Models.VehicleLog
+                    {
+                        PlateNumber = record.PlateNumber,
+                        Direction = "Out",
+                        LogTime = record.CompleteTime,
+                        RelatedWeighId = record.Id,
+                        GrossWeight = record.GrossWeight,
+                        TareWeight = record.TareWeight,
+                        OperatorName = op,
+                        Remark = "称重完成-出场"
+                    });
                 }
             }
             catch { }

@@ -165,6 +165,27 @@ namespace pism_weigh.Database
                     // 2.3: WeighRecords 新增 VehicleId 列（幂等）
                     try { ExecuteNonQuery("ALTER TABLE WeighRecords ADD COLUMN VehicleId TEXT"); } catch { }
 
+                    // 创建车辆进出场记录表
+                    string createVehicleLogTable = @"
+                        CREATE TABLE IF NOT EXISTS VehicleLogs (
+                            Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            PlateNumber TEXT NOT NULL,
+                            Direction TEXT NOT NULL,
+                            LogTime DATETIME NOT NULL,
+                            RelatedWeighId TEXT,
+                            GrossWeight DECIMAL(18,2),
+                            TareWeight DECIMAL(18,2),
+                            OperatorName TEXT,
+                            Remark TEXT,
+                            CreateTime DATETIME DEFAULT CURRENT_TIMESTAMP
+                        )";
+                    ExecuteNonQuery(createVehicleLogTable);
+
+                    string createVLogIdx = "CREATE INDEX IF NOT EXISTS idx_vlog_time ON VehicleLogs(LogTime)";
+                    ExecuteNonQuery(createVLogIdx);
+                    string createVLogIdx2 = "CREATE INDEX IF NOT EXISTS idx_vlog_plate ON VehicleLogs(PlateNumber)";
+                    ExecuteNonQuery(createVLogIdx2);
+
                     string createRawWeightTable = @"
                         CREATE TABLE IF NOT EXISTS RawWeightLogs (
                             Id TEXT PRIMARY KEY,
@@ -1075,6 +1096,84 @@ namespace pism_weigh.Database
                 return ExecuteNonQuery(sql, new SQLiteParameter("@Id", id)) > 0;
             }
             catch { return false; }
+        }
+
+        // ===== 车辆进出场日志 =====
+
+        public static bool SaveVehicleLog(VehicleLog log)
+        {
+            try
+            {
+                var sql = @"INSERT INTO VehicleLogs (PlateNumber, Direction, LogTime, RelatedWeighId,
+                    GrossWeight, TareWeight, OperatorName, Remark)
+                    VALUES (@Plate, @Dir, @Time, @WeighId, @Gross, @Tare, @Op, @Remark)";
+                return ExecuteNonQuery(sql,
+                    new SQLiteParameter("@Plate", log.PlateNumber),
+                    new SQLiteParameter("@Dir", log.Direction),
+                    new SQLiteParameter("@Time", log.LogTime),
+                    new SQLiteParameter("@WeighId", (object)log.RelatedWeighId ?? DBNull.Value),
+                    new SQLiteParameter("@Gross", log.GrossWeight),
+                    new SQLiteParameter("@Tare", log.TareWeight),
+                    new SQLiteParameter("@Op", (object)log.OperatorName ?? DBNull.Value),
+                    new SQLiteParameter("@Remark", (object)log.Remark ?? DBNull.Value)
+                ) > 0;
+            }
+            catch { return false; }
+        }
+
+        public static List<VehicleLog> GetVehicleLogs(DateTime? start, DateTime? end, string plateNumber)
+        {
+            var list = new List<VehicleLog>();
+            try
+            {
+                var sql = "SELECT * FROM VehicleLogs WHERE 1=1";
+                var ps = new List<SQLiteParameter>();
+                if (start.HasValue) { sql += " AND LogTime >= @Start"; ps.Add(new SQLiteParameter("@Start", start.Value)); }
+                if (end.HasValue) { sql += " AND LogTime <= @End"; ps.Add(new SQLiteParameter("@End", end.Value.AddDays(1))); }
+                if (!string.IsNullOrWhiteSpace(plateNumber)) { sql += " AND PlateNumber LIKE @Plate"; ps.Add(new SQLiteParameter("@Plate", "%" + plateNumber + "%")); }
+                sql += " ORDER BY LogTime DESC LIMIT 500";
+
+                var dt = ExecuteQuery(sql, ps.ToArray());
+                foreach (DataRow row in dt.Rows)
+                {
+                    list.Add(new VehicleLog
+                    {
+                        Id = Convert.ToInt32(row["Id"]),
+                        PlateNumber = row["PlateNumber"].ToString(),
+                        Direction = row["Direction"].ToString(),
+                        LogTime = Convert.ToDateTime(row["LogTime"]),
+                        RelatedWeighId = row["RelatedWeighId"] == DBNull.Value ? null : row["RelatedWeighId"].ToString(),
+                        GrossWeight = row["GrossWeight"] == DBNull.Value ? 0 : Convert.ToDecimal(row["GrossWeight"]),
+                        TareWeight = row["TareWeight"] == DBNull.Value ? 0 : Convert.ToDecimal(row["TareWeight"]),
+                        OperatorName = row["OperatorName"] == DBNull.Value ? null : row["OperatorName"].ToString(),
+                        Remark = row["Remark"] == DBNull.Value ? null : row["Remark"].ToString(),
+                        CreateTime = Convert.ToDateTime(row["CreateTime"])
+                    });
+                }
+            }
+            catch { }
+            return list;
+        }
+
+        public static int GetActiveVehicleCount()
+        {
+            try
+            {
+                var sql = @"SELECT COUNT(DISTINCT PlateNumber) FROM VehicleLogs
+                    WHERE PlateNumber NOT IN (
+                        SELECT PlateNumber FROM VehicleLogs v2
+                        WHERE v2.Direction = 'Out' AND v2.LogTime = (
+                            SELECT MAX(LogTime) FROM VehicleLogs v3 WHERE v3.PlateNumber = v2.PlateNumber
+                        )
+                    )
+                    AND PlateNumber IN (
+                        SELECT PlateNumber FROM VehicleLogs WHERE Direction = 'In'
+                    )";
+                var dt = ExecuteQuery(sql);
+                if (dt.Rows.Count > 0) return Convert.ToInt32(dt.Rows[0][0]);
+            }
+            catch { }
+            return 0;
         }
 
         #endregion
