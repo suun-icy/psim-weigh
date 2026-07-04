@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>磅单打印</title>
+
+<style>
+@page {
+    size: 24cm 9.31cm;
+    margin: 0;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 24cm;
+    height: 9.31cm;
+    font-family: "Courier New", monospace;
+    font-size: 12px;
+}
+
+/* 主表 */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+/* 默认边框 */
+td {
+    border: 1px solid #000;
+    padding: 4px;
+}
+
+/* 标题 */
+.title {
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    border: 1px solid #000;
+    height: 28px;
+}
+
+/* 时间行：无边框 */
+.no-border td {
+    border: none !important;
+    padding: 6px 4px;
+}
+
+/* 左右列 */
+.label {
+    width: 12%;
+}
+
+.value {
+    width: 38%;
+}
+
+.rlabel {
+    width: 12%;
+}
+
+.rvalue {
+    width: 38%;
+}
+</style>
+</head>
+
+<body>
+
+<table>
+
+    <!-- 标题 -->
+    <tr class="no-border">
+        <td class="title" colspan="4">磅单</td>
+    </tr>
+
+    <!-- 时间行（无边框） -->
+    <tr class="no-border">
+        <td>时间</td>
+        <td>2026/7/4 11:01</td>
+        <td></td>
+        <td></td>
+    </tr>
+
+    <!-- 数据区 -->
+    <tr>
+        <td class="label">车牌</td>
+        <td class="value"></td>
+        <td class="rlabel">毛重</td>
+        <td class="rvalue"></td>
+    </tr>
+
+    <tr>
+        <td class="label">运输单位</td>
+        <td class="value"></td>
+        <td class="rlabel">皮重</td>
+        <td class="rvalue"></td>
+    </tr>
+
+    <tr>
+        <td class="label">运输内容</td>
+        <td class="value"></td>
+        <td class="rlabel">净重</td>
+        <td class="rvalue"></td>
+    </tr>
+
+    <tr>
+        <td class="label">送货地点</td>
+        <td class="value"></td>
+        <td class="rlabel">毛重时间</td>
+        <td class="rvalue"></td>
+    </tr>
+
+    <tr>
+        <td class="label">送货单位</td>
+        <td class="value"></td>
+        <td class="rlabel">皮重时间</td>
+        <td class="rvalue"></td>
+    </tr>
+
+    <tr>
+        <td class="label">司机</td>
+        <td class="value"></td>
+        <td class="rlabel"></td>
+        <td class="rvalue"></td>
+    </tr>
+
+    <tr>
+        <td class="label">司磅员</td>
+        <td class="value"></td>
+        <td class="rlabel"></td>
+        <td class="rvalue"></td>
+    </tr>
+
+</table>
+
+</body>
+</html>

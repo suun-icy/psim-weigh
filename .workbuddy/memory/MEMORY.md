@@ -17,13 +17,22 @@
 9. 保留手动模式，不强制依赖硬件
 
 ## 一期优先开发顺序
-1. ✅ 脱机手动模式 — 已完成 2026-07-04
-2. ⬜ 集成 DatabaseHelper（称重完成时本地保存）
-3. ⬜ 集成 PrintService（button7 真正执行打印）
-4. ⬜ 修复 button7 数据上传逻辑（字段映射错误）
-5. ⬜ 修复停止位选项（去掉 "0"，增加 "1.5" 和 "2"）
+1. ✅ 脱机手动模式 — 2026-07-04
+2. ✅ 集成 DatabaseHelper — 2026-07-04
+3. ✅ 集成 PrintService — 2026-07-04
+4. ✅ 修复停止位选项 — 2026-07-04
+5. ✅ 参数配置持久化 + 自动连接 — 2026-07-04
+6. ✅ 称重记录查询与汇总分析 — 2026-07-04
+7. ✅ 主界面信息输入补充 + 历史快速填充 — 2026-07-04
+8. ✅ 主界面UI布局优化与美化 — 2026-07-04
+
+## 新增文件
+- `Models/AppConfig.cs` — JSON 配置文件持久化
+- `QueryForm.cs` + `QueryForm.Designer.cs` — 查询分析窗口
 
 ## 架构要点
-- 三个服务类未集成：ScaleService(289行)、PrintService(283行)、DatabaseHelper(529行)
-- Form1 所有逻辑内联，UI 和业务高度耦合
-- 服务器地址硬编码在代码中
+- ScaleService 和 PrintService 已被部分引用但未充分使用
+- DatabaseHelper 已在 Form1.cs 多处使用（SaveWeighRecord / GetLatestOpenRecordByPlate / SaveRawWeightLog）
+- Program.cs 启动时调用 DatabaseHelper.Initialize()
+- Form1.cs 已实现完整的先毛后皮/先皮后毛两阶段称重流程
+- 服务器地址仍硬编码在代码中
