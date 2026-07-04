@@ -34,6 +34,7 @@ namespace pism_weigh
                 : DatabaseHelper.SearchVehicles(keyword);
             dgvVehicles.DataSource = null;
             dgvVehicles.DataSource = _vehicles;
+            TranslateColumns(dgvVehicles);
             lblCount.Text = "共 " + _vehicles.Count + " 辆车";
             ClearEdit();
         }
@@ -206,6 +207,25 @@ namespace pism_weigh
                 case "Frozen": return "已冻结";
                 case "Blacklisted": return "黑名单";
                 default: return status ?? "-";
+            }
+        }
+
+        private static void TranslateColumns(DataGridView dgv)
+        {
+            var map = new Dictionary<string, string>
+            {
+                {"PlateNumber", "车牌号"}, {"Province", "省份"}, {"PlateCode", "车牌号码"},
+                {"VehicleType", "车辆类型"}, {"BrandModel", "品牌型号"},
+                {"RatedLoad", "核定载重(吨)"}, {"CurbWeight", "整备质量(吨)"},
+                {"OwnerName", "车主"}, {"OwnerPhone", "车主电话"}, {"OwnerUnit", "所属单位"},
+                {"FuelType", "燃油类型"}, {"EmissionStandard", "排放标准"},
+                {"RegisteredDate", "注册日期"}, {"Status", "状态"},
+                {"Remark", "备注"}, {"CreateTime", "创建时间"}, {"UpdateTime", "更新时间"}
+            };
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (map.ContainsKey(col.DataPropertyName))
+                    col.HeaderText = map[col.DataPropertyName];
             }
         }
     }

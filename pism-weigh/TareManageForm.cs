@@ -36,6 +36,22 @@ namespace pism_weigh
                 : "暂无预设皮重";
             dgvRecords.DataSource = null;
             dgvRecords.DataSource = records;
+            TranslateColumns(dgvRecords);
+        }
+
+        private static void TranslateColumns(DataGridView dgv)
+        {
+            var map = new System.Collections.Generic.Dictionary<string, string>
+            {
+                {"PlateNumber", "车牌号"}, {"TareWeight", "皮重(kg)"},
+                {"WeighDate", "称重日期"}, {"Source", "来源"}, {"OperatorName", "操作员"},
+                {"Remark", "备注"}, {"CreateTime", "记录时间"}
+            };
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (map.ContainsKey(col.DataPropertyName))
+                    col.HeaderText = map[col.DataPropertyName];
+            }
         }
 
         private void btnAdd_Click(object sender, EventArgs e)
