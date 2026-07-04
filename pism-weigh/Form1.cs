@@ -919,7 +919,31 @@ namespace pism_weigh
                 {
                     return WeighingMode.TareFirst;
                 }
+            }
+            return fallback;
+        }
 
+        /// <summary>
+        /// 手动模式切换事件 — 联机模式（默认）/ 手动模式切换
+        /// 手动模式下解除对 textBox6（实时重量）的硬性依赖，用户可直接输入重量
+        /// </summary>
+        private void checkBoxManualMode_CheckedChanged(object sender, EventArgs e)
+        {
+            bool isManual = checkBoxManualMode.Checked;
+            if (isManual)
+            {
+                textBox6.Enabled = false;
+                labelManualTip.Visible = true;
+                label6.Text = "手动模式";
+                label6.ForeColor = System.Drawing.Color.DarkOrange;
+            }
+            else
+            {
+                textBox6.Enabled = true;
+                labelManualTip.Visible = false;
+                label6.Text = "串口已关闭";
+                label6.ForeColor = System.Drawing.Color.Red;
+            }
         }
     }
 }

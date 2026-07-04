@@ -56,6 +56,8 @@ namespace pism_weigh
 			this.comboBoxPlateHistory = new System.Windows.Forms.ComboBox();
 			this.label15 = new System.Windows.Forms.Label();
 			this.comboBox8 = new System.Windows.Forms.ComboBox();
+			this.checkBoxManualMode = new System.Windows.Forms.CheckBox();
+			this.labelManualTip = new System.Windows.Forms.Label();
 			this.radioButton4 = new System.Windows.Forms.RadioButton();
 			this.radioButton3 = new System.Windows.Forms.RadioButton();
 			this.textBox5 = new System.Windows.Forms.TextBox();
@@ -316,9 +318,13 @@ namespace pism_weigh
             this.panel3.Controls.Add(this.button4);
             this.panel3.Controls.Add(this.label8);
             this.panel3.Controls.Add(this.button2);
+            this.panel3.Controls.Add(this.comboBoxPlateHistory);
+            this.panel3.Controls.Add(this.comboBox8);
+            this.panel3.Controls.Add(this.checkBoxManualMode);
+            this.panel3.Controls.Add(this.labelManualTip);
             this.panel3.Location = new System.Drawing.Point(195, 236);
             this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(584, 189);
+            this.panel3.Size = new System.Drawing.Size(584, 210);
             this.panel3.TabIndex = 2;
             // 
             // label15
@@ -353,6 +359,49 @@ namespace pism_weigh
             this.radioButton3.Text = "购入";
             this.radioButton3.UseVisualStyleBackColor = true;
             this.radioButton3.CheckedChanged += new System.EventHandler(this.radioButton3_CheckedChanged);
+            // 
+            // comboBoxPlateHistory
+            // 
+            this.comboBoxPlateHistory.Font = new System.Drawing.Font("宋体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.comboBoxPlateHistory.FormattingEnabled = true;
+            this.comboBoxPlateHistory.Location = new System.Drawing.Point(265, 143);
+            this.comboBoxPlateHistory.Name = "comboBoxPlateHistory";
+            this.comboBoxPlateHistory.Size = new System.Drawing.Size(167, 24);
+            this.comboBoxPlateHistory.TabIndex = 19;
+            this.comboBoxPlateHistory.TextChanged += new System.EventHandler(this.comboBoxPlateHistory_TextChanged);
+            this.comboBoxPlateHistory.SelectedIndexChanged += new System.EventHandler(this.comboBoxPlateHistory_SelectedIndexChanged);
+            // 
+            // comboBox8
+            // 
+            this.comboBox8.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox8.Font = new System.Drawing.Font("宋体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.comboBox8.FormattingEnabled = true;
+            this.comboBox8.Location = new System.Drawing.Point(438, 143);
+            this.comboBox8.Name = "comboBox8";
+            this.comboBox8.Size = new System.Drawing.Size(140, 24);
+            this.comboBox8.TabIndex = 20;
+            // 
+            // checkBoxManualMode
+            // 
+            this.checkBoxManualMode.AutoSize = true;
+            this.checkBoxManualMode.Location = new System.Drawing.Point(10, 175);
+            this.checkBoxManualMode.Name = "checkBoxManualMode";
+            this.checkBoxManualMode.Size = new System.Drawing.Size(72, 16);
+            this.checkBoxManualMode.TabIndex = 21;
+            this.checkBoxManualMode.Text = "手动模式";
+            this.checkBoxManualMode.UseVisualStyleBackColor = true;
+            this.checkBoxManualMode.CheckedChanged += new System.EventHandler(this.checkBoxManualMode_CheckedChanged);
+            // 
+            // labelManualTip
+            // 
+            this.labelManualTip.AutoSize = true;
+            this.labelManualTip.ForeColor = System.Drawing.Color.Gray;
+            this.labelManualTip.Location = new System.Drawing.Point(100, 177);
+            this.labelManualTip.Name = "labelManualTip";
+            this.labelManualTip.Size = new System.Drawing.Size(173, 12);
+            this.labelManualTip.TabIndex = 22;
+            this.labelManualTip.Text = "手动模式下可直接输入重量数值";
+            this.labelManualTip.Visible = false;
             // 
             // textBox5
             // 
@@ -579,7 +628,7 @@ namespace pism_weigh
             // 
             this.panel6.Controls.Add(this.label7);
             this.panel6.Controls.Add(this.label6);
-            this.panel6.Location = new System.Drawing.Point(13, 431);
+            this.panel6.Location = new System.Drawing.Point(13, 451);
             this.panel6.Name = "panel6";
             this.panel6.Size = new System.Drawing.Size(766, 42);
             this.panel6.TabIndex = 5;
@@ -612,7 +661,7 @@ namespace pism_weigh
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 485);
+            this.ClientSize = new System.Drawing.Size(800, 510);
             this.Controls.Add(this.panel6);
             this.Controls.Add(this.panel5);
             this.Controls.Add(this.panel4);
@@ -670,7 +719,6 @@ namespace pism_weigh
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.ComboBox comboBox7;
-        private System.Windows.Forms.ComboBox comboBox8;
         private System.Windows.Forms.TextBox textBox2;
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Button button5;
@@ -692,5 +740,9 @@ namespace pism_weigh
         private System.Windows.Forms.Label label15;
         private System.Windows.Forms.RadioButton radioButton4;
         private System.Windows.Forms.RadioButton radioButton3;
+        private System.Windows.Forms.ComboBox comboBoxPlateHistory;
+        private System.Windows.Forms.ComboBox comboBox8;
+        private System.Windows.Forms.CheckBox checkBoxManualMode;
+        private System.Windows.Forms.Label labelManualTip;
     }
 }
