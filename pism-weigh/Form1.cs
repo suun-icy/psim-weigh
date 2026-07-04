@@ -141,6 +141,23 @@ namespace pism_weigh
             btnQuery.Click += (s, e) => { new QueryForm().ShowDialog(); };
             panel3.Controls.Add(btnQuery);
 
+            // 设置按钮
+            var btnSettings = new System.Windows.Forms.Button
+            {
+                Text = "设置",
+                Location = new System.Drawing.Point(408, 278),
+                Size = new System.Drawing.Size(75, 25),
+                Font = new System.Drawing.Font("Microsoft YaHei UI", 8F),
+                UseVisualStyleBackColor = true
+            };
+            btnSettings.Click += (s, e) =>
+            {
+                var form = new SettingsForm();
+                if (form.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                    RefreshDropdowns();
+            };
+            panel3.Controls.Add(btnSettings);
+
             // 填充下拉数据
             PopulateDropdowns();
         }
