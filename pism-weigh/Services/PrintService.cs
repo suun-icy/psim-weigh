@@ -68,6 +68,8 @@ namespace pism_weigh.Services
                 return false;
 
             _printDocument.PrinterSettings = printDialog.PrinterSettings;
+            // 确保纸张大小不因打印机切换而改变
+            SetDefaultPaperSize();
 
             var previewDialog = new PrintPreviewDialog
             {
@@ -131,6 +133,8 @@ namespace pism_weigh.Services
             _record = record;
             _template = template ?? PrintTemplate.WeighSlip240x93;
 
+            SetDefaultPaperSize();
+
             var previewDialog = new PrintPreviewDialog
             {
                 Document = _printDocument,
@@ -172,7 +176,7 @@ namespace pism_weigh.Services
                 var titleSF = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
                 var titleRect = new RectangleF(x, y, tableWidth, 15f);
                 g.DrawString("磅  单", titleFont, Brushes.Black, titleRect, titleSF);
-                y += 15f;
+                y += 10f;
 
                 // ===== 第2行：时间行（无边框）=====
                 var timeText = "时间  " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
@@ -215,14 +219,8 @@ namespace pism_weigh.Services
                 // ===== 第8行：司机 | 数据 | (空) | (空) =====
                 DrawFourColRow(g, pen, labelFont, valueFont, x, y, col1W, col2W, col3W, col4W, rowH,
                     "司机", _record.DriverName ?? "",
-                    "", "");
-                y += rowH;
-
-                // ===== 第9行：(空) | (空) | 司磅员 | 数据 =====
-                DrawFourColRow(g, pen, labelFont, valueFont, x, y, col1W, col2W, col3W, col4W, rowH,
-                    "", "",
-                    "司磅员", _record.OperatorName ?? "");
-                y += rowH;
+					 "司磅员", _record.OperatorName ?? "");
+				y += rowH;
             }
 
             e.HasMorePages = false;
@@ -315,12 +313,12 @@ namespace pism_weigh.Services
         {
             Title = "磅单",
             PageWidth = 240,
-            PageHeight = 93.1f,
+            PageHeight = 63.1f,
             MarginLeft = 6,
             MarginRight = 6,
             MarginTop = 3,
             MarginBottom = 2,
-            RowHeight = 6
+            RowHeight = 5
         };
 
         /// <summary>
