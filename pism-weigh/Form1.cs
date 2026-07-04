@@ -1373,6 +1373,13 @@ namespace pism_weigh
                     chkUsePresetTare.Visible = false;
                     chkUsePresetTare.Checked = false;
                 }
+
+                // 自动填充默认司机
+                var defaultDriver = DatabaseHelper.GetDefaultDriver(plateNumber);
+                if (!string.IsNullOrWhiteSpace(defaultDriver))
+                {
+                    cboDriver.Text = defaultDriver;
+                }
             }
             catch { }
         }

@@ -186,6 +186,18 @@ namespace pism_weigh.Database
                     string createVLogIdx2 = "CREATE INDEX IF NOT EXISTS idx_vlog_plate ON VehicleLogs(PlateNumber)";
                     ExecuteNonQuery(createVLogIdx2);
 
+                    // 创建车辆-司机绑定表
+                    string createVDriverTable = @"
+                        CREATE TABLE IF NOT EXISTS VehicleDrivers (
+                            Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            VehicleId TEXT NOT NULL,
+                            DriverName TEXT NOT NULL,
+                            DriverPhone TEXT,
+                            IsDefault INTEGER DEFAULT 0,
+                            FOREIGN KEY (VehicleId) REFERENCES Vehicles(Id)
+                        )";
+                    ExecuteNonQuery(createVDriverTable);
+
                     string createRawWeightTable = @"
                         CREATE TABLE IF NOT EXISTS RawWeightLogs (
                             Id TEXT PRIMARY KEY,
@@ -1220,6 +1232,39 @@ namespace pism_weigh.Database
             }
             catch { }
             return list;
+        }
+
+        // ===== 车辆-司机绑定 =====
+
+        public static bool SaveVehicleDriver(string vehicleId, string driverName, string driverPhone, bool isDefault)
+        {
+            try
+            {
+                if (isDefault)
+                    ExecuteNonQuery("UPDATE VehicleDrivers SET IsDefault = 0 WHERE VehicleId = @VId",
+                        new SQLiteParameter("@VId", vehicleId));
+                var sql = "INSERT OR REPLACE INTO VehicleDrivers (VehicleId, DriverName, DriverPhone, IsDefault) VALUES (@VId, @Name, @Phone, @Def)";
+                return ExecuteNonQuery(sql,
+                    new SQLiteParameter("@VId", vehicleId),
+                    new SQLiteParameter("@Name", driverName),
+                    new SQLiteParameter("@Phone", (object)driverPhone ?? DBNull.Value),
+                    new SQLiteParameter("@Def", isDefault ? 1 : 0)) > 0;
+            }
+            catch { return false; }
+        }
+
+        public static string GetDefaultDriver(string plateNumber)
+        {
+            try
+            {
+                var sql = @"SELECT vd.DriverName FROM VehicleDrivers vd
+                    JOIN Vehicles v ON v.Id = vd.VehicleId
+                    WHERE v.PlateNumber = @Plate AND vd.IsDefault = 1 LIMIT 1";
+                var dt = ExecuteQuery(sql, new SQLiteParameter("@Plate", plateNumber));
+                if (dt.Rows.Count > 0) return dt.Rows[0][0].ToString();
+            }
+            catch { }
+            return null;
         }
 
         #endregion
