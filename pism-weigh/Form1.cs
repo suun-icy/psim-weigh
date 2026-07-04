@@ -1380,6 +1380,18 @@ namespace pism_weigh
                 {
                     cboDriver.Text = defaultDriver;
                 }
+
+                // 黑名单检查
+                try
+                {
+                    var vehicle = DatabaseHelper.GetVehicleByPlate(plateNumber);
+                    if (vehicle != null && vehicle.Status == "Blacklisted")
+                    {
+                        MessageBox.Show("警告：车牌 " + plateNumber + " 已被列入黑名单！\n原因: " + (vehicle.Remark ?? "无"),
+                            "黑名单预警", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                }
+                catch { }
             }
             catch { }
         }

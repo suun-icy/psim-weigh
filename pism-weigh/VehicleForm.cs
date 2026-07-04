@@ -199,6 +199,42 @@ namespace pism_weigh
             Close();
         }
 
+        private void btnPhoto_Click(object sender, EventArgs e)
+        {
+            if (_editing == null)
+            {
+                MessageBox.Show("请先选择一辆车。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            var openDialog = new OpenFileDialog
+            {
+                Filter = "图片文件 (*.jpg;*.jpeg;*.png;*.bmp)|*.jpg;*.jpeg;*.png;*.bmp",
+                Title = "选择车辆照片"
+            };
+            if (openDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    // 复制照片到 Data/Photos 目录
+                    var photoDir = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Photos");
+                    if (!System.IO.Directory.Exists(photoDir))
+                        System.IO.Directory.CreateDirectory(photoDir);
+                    var ext = System.IO.Path.GetExtension(openDialog.FileName);
+                    var dest = System.IO.Path.Combine(photoDir, _editing.Id + ext);
+                    System.IO.File.Copy(openDialog.FileName, dest, true);
+
+                    _editing.PhotoPath = dest;
+                    _editing.UpdateTime = DateTime.Now;
+                    DatabaseHelper.SaveVehicle(_editing);
+                    MessageBox.Show("照片已保存。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("照片保存失败: " + ex.Message, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
         private static string GetStatusText(string status)
         {
             switch (status)

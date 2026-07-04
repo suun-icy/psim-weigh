@@ -139,6 +139,22 @@ namespace pism_weigh
             btnClear.Click += (s, e) => { dgvVehicles.ClearSelection(); ClearEdit(); };
             groupEdit.Controls.Add(btnClear);
 
+            // Photo
+            var btnPhoto = new Button { Text = "照片", Location = new Point(12, y), Size = new Size(50, 32), UseVisualStyleBackColor = true };
+            btnPhoto.Click += btnPhoto_Click;
+            groupEdit.Controls.Add(btnPhoto);
+
+            var picVehicle = new PictureBox
+            {
+                Location = new Point(280, y + 40),
+                Size = new Size(80, 60),
+                SizeMode = PictureBoxSizeMode.Zoom,
+                BorderStyle = BorderStyle.FixedSingle,
+                Visible = false
+            };
+            groupEdit.Controls.Add(picVehicle);
+            picVehicle.Name = "picVehicle";
+
             Controls.Add(groupEdit);
 
             this.Load += VehicleForm_Load;
