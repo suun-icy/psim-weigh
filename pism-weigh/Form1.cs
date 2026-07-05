@@ -98,7 +98,35 @@ namespace pism_weigh
             comboBox8.Size = new System.Drawing.Size(110, 24);
 
             comboBoxPlateHistory.Location = new System.Drawing.Point(340, 275);
-            comboBoxPlateHistory.Size = new System.Drawing.Size(225, 24);
+            comboBoxPlateHistory.Size = new System.Drawing.Size(185, 24);
+
+            // 摄像头抓拍按钮（放在车牌历史下拉框旁边）
+            var btnCameraSnap = new System.Windows.Forms.Button
+            {
+                Text = "抓拍",
+                Location = new System.Drawing.Point(530, 274),
+                Size = new System.Drawing.Size(48, 25),
+                Font = new System.Drawing.Font("Microsoft YaHei UI", 8F),
+                BackColor = System.Drawing.Color.FromArgb(24, 144, 255),
+                ForeColor = System.Drawing.Color.White,
+                FlatStyle = System.Windows.Forms.FlatStyle.Flat,
+                UseVisualStyleBackColor = false
+            };
+            btnCameraSnap.FlatAppearance.BorderSize = 0;
+            btnCameraSnap.Click += btnCameraSnap_Click;
+            panel3.Controls.Add(btnCameraSnap);
+
+            // 摄像头管理按钮
+            var btnCameraMgr = new System.Windows.Forms.Button
+            {
+                Text = "摄像头",
+                Location = new System.Drawing.Point(580, 308),
+                Size = new System.Drawing.Size(60, 25),
+                Font = new System.Drawing.Font("Microsoft YaHei UI", 8F),
+                UseVisualStyleBackColor = true
+            };
+            btnCameraMgr.Click += (s, e) => { new CameraForm().ShowDialog(); };
+            panel3.Controls.Add(btnCameraMgr);
 
             checkBoxManualMode.Location = new System.Drawing.Point(10, 310);
             labelManualTip.Location = new System.Drawing.Point(90, 312);
@@ -1396,18 +1424,78 @@ namespace pism_weigh
 
         private void chkUsePresetTare_CheckedChanged(object sender, EventArgs e)
         {
-            // 使用预设皮重时禁用空车称重按钮，提示用户无需二次称重
             bool usePreset = chkUsePresetTare.Checked;
             if (usePreset && !checkBoxManualMode.Checked)
             {
                 button4.Enabled = false;
-                comboBox8.SelectedIndex = 0; // 强制先毛后皮模式
+                comboBox8.SelectedIndex = 0;
                 comboBox8.Enabled = false;
             }
             else
             {
                 button4.Enabled = true;
                 comboBox8.Enabled = true;
+            }
+        }
+
+        private void btnCameraSnap_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var config = DatabaseHelper.GetDefaultCamera();
+                if (config == null)
+                {
+                    MessageBox.Show("未配置摄像头，请先在\"摄像头管理\"中添加。", "提示",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                // 临时创建摄像头服务抓拍并识别
+                Interfaces.ICameraService cam = config.CameraType == "Hikvision"
+                    ? (Interfaces.ICameraService)new Services.HikvisionCameraService()
+                    : new Services.GenericCameraService();
+
+                if (cam.Connect(config))
+                {
+                    var snap = cam.CaptureSnapshot();
+                    cam.Disconnect();
+
+                    if (snap != null)
+                    {
+                        var lpr = new Services.PlateRecognizer(config.CameraType == "Hikvision");
+                        var plate = lpr.Recognize(snap);
+                        if (!string.IsNullOrWhiteSpace(plate))
+                        {
+                            // 填充车牌
+                            if (plate.Length >= 1 && comboBox7.Items.Contains(plate.Substring(0, 1)))
+                                comboBox7.SelectedItem = plate.Substring(0, 1);
+                            if (plate.Length > 1)
+                                textBox5.Text = plate.Substring(1);
+                            // 填充历史
+                            if (!plateHistoryCache.Contains(plate))
+                                plateHistoryCache.Insert(0, plate);
+                            RefreshPlateHistoryDropdown(plateHistoryCache);
+                            comboBoxPlateHistory.Text = plate;
+                            CheckPresetTare(plate);
+                        }
+                        else
+                        {
+                            MessageBox.Show("未识别到车牌，请重试。", "提示",
+                                MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        snap.Dispose();
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("摄像头连接失败，请检查配置。", "错误",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("抓拍识别失败: " + ex.Message, "错误",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

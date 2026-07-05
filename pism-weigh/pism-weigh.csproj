@@ -127,6 +127,12 @@
     <Compile Include="Models\Vehicle.cs" />
     <Compile Include="Models\CameraConfig.cs" />
     <Compile Include="Interfaces\ICameraService.cs" />
+    <Compile Include="Services\GenericCameraService.cs" />
+    <Compile Include="Services\HikvisionCameraService.cs" />
+    <Compile Include="Services\PlateRecognizer.cs" />
+    <Compile Include="CameraForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="print.cs">
       <SubType>Form</SubType>
     </Compile>
