@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -122,7 +123,7 @@ namespace pism_weigh
             pnlRight.Controls.Add(grpPreview);
             this.Controls.Add(pnlRight);
 
-            this.FormClosing += (s, e) => _cameraService?.Disconnect();
+            this.FormClosing += (s, e) => { if (!DesignMode) _cameraService?.Disconnect(); };
         }
 
         private (Label, TextBox) AddRow(Control parent, string label, ref int y, int tw)
@@ -149,6 +150,8 @@ namespace pism_weigh
 
         private void CameraForm_Load(object sender, System.EventArgs e)
         {
+            if (DesignMode || LicenseManager.UsageMode == LicenseUsageMode.Designtime) return;
+
             Services.UIStyler.StyleForm(this, "摄像头管理");
             Services.UIStyler.StyleDataGridView(_dgvCameras);
             RefreshList();
