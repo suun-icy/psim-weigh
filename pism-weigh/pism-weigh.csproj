@@ -125,6 +125,8 @@
       <DependentUpon>VehicleStatsForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Models\Vehicle.cs" />
+    <Compile Include="Models\CameraConfig.cs" />
+    <Compile Include="Interfaces\ICameraService.cs" />
     <Compile Include="print.cs">
       <SubType>Form</SubType>
     </Compile>

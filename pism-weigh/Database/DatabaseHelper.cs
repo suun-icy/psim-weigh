@@ -198,6 +198,26 @@ namespace pism_weigh.Database
                         )";
                     ExecuteNonQuery(createVDriverTable);
 
+                    // 创建摄像头配置表
+                    string createCameraTable = @"
+                        CREATE TABLE IF NOT EXISTS Cameras (
+                            Id TEXT PRIMARY KEY,
+                            Name TEXT NOT NULL,
+                            CameraType TEXT NOT NULL,
+                            IPAddress TEXT,
+                            Port INTEGER DEFAULT 8000,
+                            Username TEXT,
+                            Password TEXT,
+                            ChannelNo INTEGER DEFAULT 1,
+                            RTSPUrl TEXT,
+                            Resolution TEXT DEFAULT '1920x1080',
+                            IsEnabled INTEGER DEFAULT 1,
+                            IsDefault INTEGER DEFAULT 0,
+                            CreateTime DATETIME DEFAULT CURRENT_TIMESTAMP,
+                            UpdateTime DATETIME DEFAULT CURRENT_TIMESTAMP
+                        )";
+                    ExecuteNonQuery(createCameraTable);
+
                     string createRawWeightTable = @"
                         CREATE TABLE IF NOT EXISTS RawWeightLogs (
                             Id TEXT PRIMARY KEY,
@@ -1265,6 +1285,89 @@ namespace pism_weigh.Database
             }
             catch { }
             return null;
+        }
+
+        // ===== 摄像头配置管理 =====
+
+        public static bool SaveCamera(CameraConfig camera)
+        {
+            try
+            {
+                var sql = @"INSERT OR REPLACE INTO Cameras
+                    (Id, Name, CameraType, IPAddress, Port, Username, Password, ChannelNo, RTSPUrl, Resolution, IsEnabled, IsDefault, CreateTime, UpdateTime)
+                    VALUES (@Id, @Name, @Type, @IP, @Port, @User, @Pwd, @Ch, @RTSP, @Res, @Enabled, @Default, @CT, @UT)";
+                camera.UpdateTime = DateTime.Now;
+                return ExecuteNonQuery(sql,
+                    new SQLiteParameter("@Id", camera.Id),
+                    new SQLiteParameter("@Name", camera.Name),
+                    new SQLiteParameter("@Type", camera.CameraType),
+                    new SQLiteParameter("@IP", (object)camera.IPAddress ?? DBNull.Value),
+                    new SQLiteParameter("@Port", camera.Port),
+                    new SQLiteParameter("@User", (object)camera.Username ?? DBNull.Value),
+                    new SQLiteParameter("@Pwd", (object)camera.Password ?? DBNull.Value),
+                    new SQLiteParameter("@Ch", camera.ChannelNo),
+                    new SQLiteParameter("@RTSP", (object)camera.RTSPUrl ?? DBNull.Value),
+                    new SQLiteParameter("@Res", (object)camera.Resolution ?? DBNull.Value),
+                    new SQLiteParameter("@Enabled", camera.IsEnabled ? 1 : 0),
+                    new SQLiteParameter("@Default", camera.IsDefault ? 1 : 0),
+                    new SQLiteParameter("@CT", camera.CreateTime),
+                    new SQLiteParameter("@UT", camera.UpdateTime)
+                ) > 0;
+            }
+            catch { return false; }
+        }
+
+        public static List<CameraConfig> GetAllCameras()
+        {
+            var list = new List<CameraConfig>();
+            try
+            {
+                var dt = ExecuteQuery("SELECT * FROM Cameras ORDER BY IsDefault DESC, Name");
+                foreach (DataRow row in dt.Rows)
+                    list.Add(MapCamera(row));
+            }
+            catch { }
+            return list;
+        }
+
+        public static CameraConfig GetDefaultCamera()
+        {
+            try
+            {
+                var dt = ExecuteQuery("SELECT * FROM Cameras WHERE IsEnabled = 1 AND IsDefault = 1 LIMIT 1");
+                if (dt.Rows.Count > 0) return MapCamera(dt.Rows[0]);
+                dt = ExecuteQuery("SELECT * FROM Cameras WHERE IsEnabled = 1 LIMIT 1");
+                if (dt.Rows.Count > 0) return MapCamera(dt.Rows[0]);
+            }
+            catch { }
+            return null;
+        }
+
+        public static bool DeleteCamera(string id)
+        {
+            var sql = "DELETE FROM Cameras WHERE Id = @Id";
+            return ExecuteNonQuery(sql, new SQLiteParameter("@Id", id)) > 0;
+        }
+
+        private static CameraConfig MapCamera(DataRow row)
+        {
+            return new CameraConfig
+            {
+                Id = row["Id"].ToString(),
+                Name = row["Name"].ToString(),
+                CameraType = row["CameraType"].ToString(),
+                IPAddress = row["IPAddress"] == DBNull.Value ? null : row["IPAddress"].ToString(),
+                Port = Convert.ToInt32(row["Port"]),
+                Username = row["Username"] == DBNull.Value ? null : row["Username"].ToString(),
+                Password = row["Password"] == DBNull.Value ? null : row["Password"].ToString(),
+                ChannelNo = Convert.ToInt32(row["ChannelNo"]),
+                RTSPUrl = row["RTSPUrl"] == DBNull.Value ? null : row["RTSPUrl"].ToString(),
+                Resolution = row["Resolution"] == DBNull.Value ? "1920x1080" : row["Resolution"].ToString(),
+                IsEnabled = Convert.ToInt32(row["IsEnabled"]) == 1,
+                IsDefault = Convert.ToInt32(row["IsDefault"]) == 1,
+                CreateTime = Convert.ToDateTime(row["CreateTime"]),
+                UpdateTime = Convert.ToDateTime(row["UpdateTime"])
+            };
         }
 
         #endregion
