@@ -161,7 +161,7 @@ namespace pism_weigh
             if (snap == null) return;
             _picPreview.Image?.Dispose(); _picPreview.Image = snap;
 
-            var plate = _lprService?.Recognize(snap);
+            var plate = (_lprService is PlateRecognizer pr) ? pr.RecognizeImmediate(snap) : _lprService?.Recognize(snap);
             if (!string.IsNullOrWhiteSpace(plate))
             {
                 var record = Services.RecognitionManager.SaveRecognition(plate, snap, _editing?.Name ?? "N/A", _editing?.CameraType ?? "Generic", "Manual");

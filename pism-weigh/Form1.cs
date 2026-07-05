@@ -1748,7 +1748,7 @@ namespace pism_weigh
                     if (snap != null)
                     {
                         var lpr = new Services.PlateRecognizer(config.CameraType == "Hikvision");
-                        var plate = lpr.Recognize(snap);
+                        var plate = ((Services.PlateRecognizer)lpr).RecognizeImmediate(snap);
                         if (!string.IsNullOrWhiteSpace(plate))
                         {
                             // 结构化保存识别记录 + 图片
