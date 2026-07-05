@@ -98,6 +98,7 @@
     <Compile Include="Services\PrinterNative.cs" />
     <Compile Include="Services\GenericCameraService.cs" />
     <Compile Include="Services\HikvisionCameraService.cs" />
+    <Compile Include="Services\OnvifCameraService.cs" />
     <Compile Include="Services\PlateRecognizer.cs" />
     <Compile Include="Services\PrintPreviewForm.cs">
       <SubType>Form</SubType>

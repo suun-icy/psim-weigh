@@ -1451,9 +1451,13 @@ namespace pism_weigh
                 }
 
                 // 临时创建摄像头服务抓拍并识别
-                Interfaces.ICameraService cam = config.CameraType == "Hikvision"
-                    ? (Interfaces.ICameraService)new Services.HikvisionCameraService()
-                    : new Services.GenericCameraService();
+                Interfaces.ICameraService cam;
+                switch (config.CameraType)
+                {
+                    case "Hikvision": cam = new Services.HikvisionCameraService(); break;
+                    case "ONVIF": cam = new Services.OnvifCameraService(); break;
+                    default: cam = new Services.GenericCameraService(); break;
+                }
 
                 if (cam.Connect(config))
                 {

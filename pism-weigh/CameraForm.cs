@@ -70,7 +70,7 @@ namespace pism_weigh
             var grpConfig = new GroupBox { Text = "摄像头参数", Location = new Point(8, 8), Size = new Size(492, 280), Font = new Font("Microsoft YaHei UI", 9F) };
             int y = 24;
             _txtName = AddField(grpConfig, "名称", ref y, 80, 150);
-            _cboType = AddCombo(grpConfig, "类型", ref y, 80, 150, "Generic", "Hikvision", "USB");
+            _cboType = AddCombo(grpConfig, "类型", ref y, 80, 150, "Generic", "ONVIF", "Hikvision", "USB");
             _txtIP = AddField(grpConfig, "IP地址", ref y, 80, 150);
             _txtPort = AddField(grpConfig, "端口", ref y, 80, 80);
             _txtUser = AddField(grpConfig, "用户名", ref y, 80, 120);
@@ -214,9 +214,18 @@ namespace pism_weigh
             if (_editing == null) { MessageBox.Show("请先选择或添加摄像头。"); return; }
 
             _cameraService?.Disconnect();
-            _cameraService = _editing.CameraType == "Hikvision"
-                ? (ICameraService)new HikvisionCameraService()
-                : new GenericCameraService();
+            switch (_editing.CameraType)
+            {
+                case "Hikvision":
+                    _cameraService = new HikvisionCameraService();
+                    break;
+                case "ONVIF":
+                    _cameraService = new OnvifCameraService();
+                    break;
+                default:
+                    _cameraService = new GenericCameraService();
+                    break;
+            }
 
             _lprService = new PlateRecognizer(_editing.CameraType == "Hikvision");
 
