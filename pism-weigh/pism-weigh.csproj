@@ -129,6 +129,9 @@
     <Compile Include="CameraForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="CameraForm.Designer.cs">
+      <DependentUpon>CameraForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Models\TareRecord.cs" />
     <Compile Include="Models\VehicleStatItem.cs" />
     <Compile Include="Models\VehicleLog.cs" />

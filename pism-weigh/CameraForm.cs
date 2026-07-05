@@ -1,5 +1,4 @@
 using System;
-using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using pism_weigh.Database;
@@ -17,118 +16,10 @@ namespace pism_weigh
         private ICameraService _cameraService;
         private ILPRService _lprService;
         private CameraConfig _editing;
-        private PictureBox _picPreview;
-        private Label _lblStatus, _lblPlateResult;
-        private Button _btnConnect, _btnDisconnect, _btnSnapshot, _btnRecognize;
-
-        private TextBox _txtName, _txtIP, _txtPort, _txtUser, _txtPwd, _txtRTSP, _txtChannel;
-        private ComboBox _cboType, _cboResolution;
-        private DataGridView _dgvCameras;
-        private Button _btnSave, _btnDelete, _btnSetDefault, _btnClose;
-        private CheckBox _chkEnabled;
 
         public CameraForm()
         {
-            InitializeControls();
-            Services.UIStyler.StyleForm(this, "摄像头管理");
-        }
-
-        private void InitializeControls()
-        {
-            this.ClientSize = new Size(800, 550);
-            this.MinimumSize = new Size(650, 450);
-            this.Font = new Font("Microsoft YaHei UI", 9F);
-
-            // ===== 左侧：摄像头列表 =====
-            var pnlList = new Panel { Location = new Point(12, 12), Size = new Size(420, 596), BorderStyle = BorderStyle.FixedSingle };
-            _dgvCameras = new DataGridView
-            {
-                Location = new Point(8, 8), Size = new Size(404, 520),
-                AllowUserToAddRows = false, AllowUserToDeleteRows = false,
-                ReadOnly = true, SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells,
-                RowHeadersVisible = false
-            };
-            _dgvCameras.SelectionChanged += (s, e) => SelectCamera();
-            pnlList.Controls.Add(_dgvCameras);
-
-            // 列表按钮
-            _btnSave = new Button { Text = "保存配置", Location = new Point(8, 536), Size = new Size(90, 30), BackColor = Color.FromArgb(24, 144, 255), ForeColor = Color.White, FlatStyle = FlatStyle.Flat };
-            _btnDelete = new Button { Text = "删除", Location = new Point(106, 536), Size = new Size(60, 30) };
-            _btnSetDefault = new Button { Text = "设为默认", Location = new Point(174, 536), Size = new Size(80, 30) };
-            _btnClose = new Button { Text = "关闭", Location = new Point(340, 536), Size = new Size(70, 30) };
-            var _btnHistory = new Button { Text = "识别记录", Location = new Point(260, 536), Size = new Size(74, 30), BackColor = Color.FromArgb(24, 144, 255), ForeColor = Color.White, FlatStyle = FlatStyle.Flat };
-            _btnHistory.Click += BtnHistory_Click;
-            _btnSave.Click += BtnSave_Click;
-            _btnDelete.Click += BtnDelete_Click;
-            _btnSetDefault.Click += BtnSetDefault_Click;
-            _btnClose.Click += (s, e) => { _cameraService?.Disconnect(); Close(); };
-            pnlList.Controls.AddRange(new Control[] { _btnSave, _btnDelete, _btnSetDefault, _btnHistory, _btnClose });
-            this.Controls.Add(pnlList);
-
-            // ===== 右侧：配置 + 预览 =====
-            var pnlRight = new Panel { Location = new Point(440, 12), Size = new Size(508, 596), BorderStyle = BorderStyle.FixedSingle };
-
-            // 配置表单
-            var grpConfig = new GroupBox { Text = "摄像头参数", Location = new Point(8, 8), Size = new Size(492, 280), Font = new Font("Microsoft YaHei UI", 9F) };
-            int y = 24;
-            _txtName = AddField(grpConfig, "名称", ref y, 80, 150);
-            _cboType = AddCombo(grpConfig, "类型", ref y, 80, 150, "Generic", "ONVIF", "Hikvision", "USB");
-            _txtIP = AddField(grpConfig, "IP地址", ref y, 80, 150);
-            _txtPort = AddField(grpConfig, "端口", ref y, 80, 80);
-            _txtUser = AddField(grpConfig, "用户名", ref y, 80, 120);
-            _txtPwd = AddField(grpConfig, "密码", ref y, 80, 120);
-            _txtPwd.PasswordChar = '*';
-            _txtChannel = AddField(grpConfig, "通道号", ref y, 80, 60);
-            _txtRTSP = AddField(grpConfig, "RTSP地址", ref y, 80, 300);
-            _cboResolution = AddCombo(grpConfig, "分辨率", ref y, 80, 120, "1920x1080", "1280x720", "640x480");
-            _chkEnabled = new CheckBox { Text = "启用", Location = new Point(80, y + 4), Size = new Size(60, 20), Checked = true };
-            grpConfig.Controls.Add(_chkEnabled);
-            pnlRight.Controls.Add(grpConfig);
-
-            // 预览区
-            var grpPreview = new GroupBox { Text = "实时预览", Location = new Point(8, 296), Size = new Size(492, 230), Font = new Font("Microsoft YaHei UI", 9F) };
-            _picPreview = new PictureBox { Location = new Point(6, 16), Size = new Size(478, 152), BackColor = Color.Black, SizeMode = PictureBoxSizeMode.Zoom, BorderStyle = BorderStyle.FixedSingle };
-            grpPreview.Controls.Add(_picPreview);
-
-            _btnConnect = new Button { Text = "连接", Location = new Point(8, 176), Size = new Size(70, 28), BackColor = Color.FromArgb(82, 196, 26), ForeColor = Color.White, FlatStyle = FlatStyle.Flat };
-            _btnDisconnect = new Button { Text = "断开", Location = new Point(84, 176), Size = new Size(70, 28), Enabled = false };
-            _btnSnapshot = new Button { Text = "抓拍", Location = new Point(160, 176), Size = new Size(70, 28) };
-            _btnRecognize = new Button { Text = "识别车牌", Location = new Point(236, 176), Size = new Size(80, 28), BackColor = Color.FromArgb(250, 173, 20), ForeColor = Color.White, FlatStyle = FlatStyle.Flat };
-            _lblStatus = new Label { Text = "状态: 未连接", Location = new Point(322, 180), Size = new Size(160, 20), ForeColor = Color.Gray };
-            _lblPlateResult = new Label { Text = "", Location = new Point(8, 208), Size = new Size(476, 20), Font = new Font("Microsoft YaHei UI", 11F, FontStyle.Bold), ForeColor = Color.DarkGreen };
-
-            _btnConnect.Click += BtnConnect_Click;
-            _btnDisconnect.Click += (s, e) => { _cameraService?.Disconnect(); _btnConnect.Enabled = true; _btnDisconnect.Enabled = false; _lblStatus.Text = "状态: 已断开"; _lblStatus.ForeColor = Color.Gray; };
-            _btnSnapshot.Click += BtnSnapshot_Click;
-            _btnRecognize.Click += BtnRecognize_Click;
-
-            grpPreview.Controls.AddRange(new Control[] { _btnConnect, _btnDisconnect, _btnSnapshot, _btnRecognize, _lblStatus, _lblPlateResult });
-            pnlRight.Controls.Add(grpPreview);
-            this.Controls.Add(pnlRight);
-
-            this.Load += (s, e) => RefreshList();
-            this.FormClosing += (s, e) => _cameraService?.Disconnect();
-        }
-
-        private TextBox AddField(Control parent, string label, ref int y, int lx, int tw)
-        {
-            parent.Controls.Add(new Label { Text = label, Location = new Point(lx - 70, y + 3), Size = new Size(65, 24) });
-            var txt = new TextBox { Location = new Point(lx, y), Size = new Size(tw, 24), BorderStyle = BorderStyle.FixedSingle };
-            parent.Controls.Add(txt);
-            y += 30;
-            return txt;
-        }
-
-        private ComboBox AddCombo(Control parent, string label, ref int y, int lx, int tw, params string[] items)
-        {
-            parent.Controls.Add(new Label { Text = label, Location = new Point(lx - 70, y + 3), Size = new Size(65, 24) });
-            var cbo = new ComboBox { Location = new Point(lx, y), Size = new Size(tw, 24), DropDownStyle = ComboBoxStyle.DropDownList };
-            cbo.Items.AddRange(items);
-            cbo.SelectedIndex = 0;
-            parent.Controls.Add(cbo);
-            y += 30;
-            return cbo;
+            InitializeComponent();
         }
 
         private void RefreshList()
@@ -184,15 +75,8 @@ namespace pism_weigh
             cam.IsEnabled = _chkEnabled.Checked;
             cam.UpdateTime = DateTime.Now;
 
-            if (cam.IsDefault)
-                DatabaseHelper.ExecuteNonQuery("UPDATE Cameras SET IsDefault=0");
-
-            if (DatabaseHelper.SaveCamera(cam))
-            {
-                _editing = null;
-                RefreshList();
-                MessageBox.Show("保存成功。");
-            }
+            if (cam.IsDefault) DatabaseHelper.ExecuteNonQuery("UPDATE Cameras SET IsDefault=0");
+            if (DatabaseHelper.SaveCamera(cam)) { _editing = null; RefreshList(); MessageBox.Show("保存成功。"); }
             else MessageBox.Show("保存失败。");
         }
 
@@ -214,20 +98,15 @@ namespace pism_weigh
 
         private void BtnConnect_Click(object sender, EventArgs e)
         {
+            SelectCamera();
             if (_editing == null) { MessageBox.Show("请先选择或添加摄像头。"); return; }
 
             _cameraService?.Disconnect();
             switch (_editing.CameraType)
             {
-                case "Hikvision":
-                    _cameraService = new HikvisionCameraService();
-                    break;
-                case "ONVIF":
-                    _cameraService = new OnvifCameraService();
-                    break;
-                default:
-                    _cameraService = new GenericCameraService();
-                    break;
+                case "Hikvision": _cameraService = new HikvisionCameraService(); break;
+                case "ONVIF": _cameraService = new OnvifCameraService(); break;
+                default: _cameraService = new GenericCameraService(); break;
             }
 
             _lprService = new PlateRecognizer(_editing.CameraType == "Hikvision");
@@ -235,43 +114,26 @@ namespace pism_weigh
             _cameraService.FrameCaptured += frame =>
             {
                 if (_picPreview.IsDisposed) return;
-                try { if (frame != null) _picPreview.Image?.Dispose(); _picPreview.Image = frame?.Clone() as Bitmap; }
-                catch { }
+                try { _picPreview.Image?.Dispose(); _picPreview.Image = frame?.Clone() as System.Drawing.Bitmap; } catch { }
             };
 
             if (_cameraService.Connect(_editing))
             {
-                _btnConnect.Enabled = false;
-                _btnDisconnect.Enabled = true;
-
-                // 区分真实摄像头与模拟模式
-                bool isReal = false;
-                if (_cameraService is GenericCameraService gcs)
-                    isReal = gcs.IsRealCamera;
-                else if (_cameraService is OnvifCameraService)
-                    isReal = true;
-
+                _btnConnect.Enabled = false; _btnDisconnect.Enabled = true;
+                bool isReal = (_cameraService is GenericCameraService gcs) ? gcs.IsRealCamera : true;
                 _lblStatus.Text = isReal ? "状态: 已连接 (实时)" : "状态: 模拟模式";
-                _lblStatus.ForeColor = isReal ? Color.DarkGreen : Color.DarkOrange;
+                _lblStatus.ForeColor = isReal ? System.Drawing.Color.DarkGreen : System.Drawing.Color.DarkOrange;
             }
-            else
-            {
-                _lblStatus.Text = "状态: 连接失败";
-                _lblStatus.ForeColor = Color.Red;
-            }
+            else { _lblStatus.Text = "状态: 连接失败"; _lblStatus.ForeColor = System.Drawing.Color.Red; }
         }
 
         private void BtnSnapshot_Click(object sender, EventArgs e)
         {
-            if (_cameraService == null || !_cameraService.IsConnected)
-            { MessageBox.Show("请先连接摄像头。"); return; }
+            if (_cameraService == null || !_cameraService.IsConnected) { MessageBox.Show("请先连接摄像头。"); return; }
             var snap = _cameraService.CaptureSnapshot();
             if (snap != null)
             {
-                _picPreview.Image?.Dispose();
-                _picPreview.Image = snap;
-
-                // 自动保存抓拍图片
+                _picPreview.Image?.Dispose(); _picPreview.Image = snap;
                 var imgPath = Services.RecognitionManager.SaveSnapshotImage(snap, "snap_" + DateTime.Now.Ticks);
                 _lblPlateResult.Text = "已保存抓拍: " + (imgPath ?? "失败");
             }
@@ -279,9 +141,7 @@ namespace pism_weigh
 
         private void BtnRecognize_Click(object sender, EventArgs e)
         {
-            if (_cameraService == null || !_cameraService.IsConnected)
-            { MessageBox.Show("请先连接摄像头。"); return; }
-
+            if (_cameraService == null || !_cameraService.IsConnected) { MessageBox.Show("请先连接摄像头。"); return; }
             var snap = _cameraService.CaptureSnapshot();
             if (snap == null) return;
             _picPreview.Image?.Dispose(); _picPreview.Image = snap;
@@ -289,63 +149,21 @@ namespace pism_weigh
             var plate = _lprService?.Recognize(snap);
             if (!string.IsNullOrWhiteSpace(plate))
             {
-                // 结构化保存识别记录 + 图片
-                var record = Services.RecognitionManager.SaveRecognition(
-                    plate, snap,
-                    _editing?.Name ?? "N/A",
-                    _editing?.CameraType ?? "Generic",
-                    "Manual");
-
-                _lblPlateResult.Text = string.Format("识别结果: {0}  |  已保存 ({1})",
-                    plate, record.ImagePath != null ? "含图片" : "无图片");
+                var record = Services.RecognitionManager.SaveRecognition(plate, snap, _editing?.Name ?? "N/A", _editing?.CameraType ?? "Generic", "Manual");
+                _lblPlateResult.Text = string.Format("识别结果: {0}  |  已保存 ({1})", plate, record.ImagePath != null ? "含图片" : "无图片");
             }
-            else
-            {
-                _lblPlateResult.Text = "识别结果: 未检测到车牌";
-            }
+            else _lblPlateResult.Text = "识别结果: 未检测到车牌";
         }
 
         private void BtnHistory_Click(object sender, EventArgs e)
         {
-            var form = new Form
-            {
-                Text = "车牌识别记录",
-                ClientSize = new Size(860, 480),
-                StartPosition = FormStartPosition.CenterParent,
-                Font = new Font("Microsoft YaHei UI", 9F)
-            };
-
-            var dgv = new DataGridView
-            {
-                Location = new Point(12, 12),
-                Size = new Size(836, 420),
-                AllowUserToAddRows = false, AllowUserToDeleteRows = false,
-                ReadOnly = true, SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells,
-                RowHeadersVisible = false
-            };
-
-            var records = DatabaseHelper.GetRecognitionRecords(DateTime.Today.AddDays(-30), DateTime.Now, null);
-            dgv.DataSource = records;
-
-            // 中文化列头
-            var map = new System.Collections.Generic.Dictionary<string, string>
-            {
-                {"PlateNumber", "车牌号"}, {"Confidence", "置信度"}, {"CameraName", "摄像头"},
-                {"CameraType", "类型"}, {"Source", "来源"}, {"ImagePath", "图片路径"},
-                {"RecognizeTime", "识别时间"}, {"Remark", "备注"}
-            };
-            dgv.DataBindingComplete += (s, ev) =>
-            {
-                foreach (DataGridViewColumn col in dgv.Columns)
-                    if (map.ContainsKey(col.DataPropertyName)) col.HeaderText = map[col.DataPropertyName];
-            };
-
-            var btnClose = new Button { Text = "关闭", Location = new Point(770, 440), Size = new Size(75, 28) };
+            var form = new Form { Text = "车牌识别记录", ClientSize = new System.Drawing.Size(860, 480), StartPosition = FormStartPosition.CenterParent, Font = new System.Drawing.Font("Microsoft YaHei UI", 9F) };
+            var dgv = new DataGridView { Location = new System.Drawing.Point(12, 12), Size = new System.Drawing.Size(836, 420), AllowUserToAddRows = false, AllowUserToDeleteRows = false, ReadOnly = true, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells, RowHeadersVisible = false, Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right };
+            dgv.DataSource = DatabaseHelper.GetRecognitionRecords(DateTime.Today.AddDays(-30), DateTime.Now, null);
+            Services.UIStyler.StyleDataGridView(dgv);
+            var btnClose = new Button { Text = "关闭", Location = new System.Drawing.Point(770, 440), Size = new System.Drawing.Size(75, 28), Anchor = AnchorStyles.Bottom | AnchorStyles.Right };
             btnClose.Click += (s, ev) => form.Close();
-
-            form.Controls.Add(dgv);
-            form.Controls.Add(btnClose);
+            form.Controls.Add(dgv); form.Controls.Add(btnClose);
             form.ShowDialog();
         }
     }
