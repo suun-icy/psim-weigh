@@ -99,6 +99,7 @@
     <Compile Include="Services\GenericCameraService.cs" />
     <Compile Include="Services\HikvisionCameraService.cs" />
     <Compile Include="Services\OnvifCameraService.cs" />
+    <Compile Include="Services\RecognitionManager.cs" />
     <Compile Include="Services\PlateRecognizer.cs" />
     <Compile Include="Services\PrintPreviewForm.cs">
       <SubType>Form</SubType>
@@ -128,6 +129,7 @@
     <Compile Include="Models\TareRecord.cs" />
     <Compile Include="Models\VehicleStatItem.cs" />
     <Compile Include="Models\VehicleLog.cs" />
+    <Compile Include="Models\PlateRecognitionRecord.cs" />
     <Compile Include="Models\CameraConfig.cs" />
     <Compile Include="Interfaces\ICameraService.cs" />
     <Compile Include="TareManageForm.cs">

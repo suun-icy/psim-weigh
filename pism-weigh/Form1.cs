@@ -1470,6 +1470,11 @@ namespace pism_weigh
                         var plate = lpr.Recognize(snap);
                         if (!string.IsNullOrWhiteSpace(plate))
                         {
+                            // 结构化保存识别记录 + 图片
+                            Services.RecognitionManager.SaveRecognition(
+                                plate, (System.Drawing.Bitmap)snap.Clone(),
+                                config.Name ?? "抓拍识别", config.CameraType ?? "Generic", "Auto");
+
                             // 填充车牌
                             if (plate.Length >= 1 && comboBox7.Items.Contains(plate.Substring(0, 1)))
                                 comboBox7.SelectedItem = plate.Substring(0, 1);

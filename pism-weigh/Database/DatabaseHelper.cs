@@ -218,6 +218,25 @@ namespace pism_weigh.Database
                         )";
                     ExecuteNonQuery(createCameraTable);
 
+                    // 创建车牌识别记录表
+                    string createLprTable = @"
+                        CREATE TABLE IF NOT EXISTS PlateRecognitionRecords (
+                            Id TEXT PRIMARY KEY,
+                            PlateNumber TEXT,
+                            Confidence REAL DEFAULT 0,
+                            CameraName TEXT,
+                            CameraType TEXT,
+                            ImagePath TEXT,
+                            VehicleId TEXT,
+                            RecognizeTime DATETIME,
+                            Source TEXT DEFAULT 'Auto',
+                            Remark TEXT,
+                            CreateTime DATETIME DEFAULT CURRENT_TIMESTAMP
+                        )";
+                    ExecuteNonQuery(createLprTable);
+                    ExecuteNonQuery("CREATE INDEX IF NOT EXISTS idx_lpr_time ON PlateRecognitionRecords(RecognizeTime)");
+                    ExecuteNonQuery("CREATE INDEX IF NOT EXISTS idx_lpr_plate ON PlateRecognitionRecords(PlateNumber)");
+
                     string createRawWeightTable = @"
                         CREATE TABLE IF NOT EXISTS RawWeightLogs (
                             Id TEXT PRIMARY KEY,
@@ -1368,6 +1387,67 @@ namespace pism_weigh.Database
                 CreateTime = Convert.ToDateTime(row["CreateTime"]),
                 UpdateTime = Convert.ToDateTime(row["UpdateTime"])
             };
+        }
+
+        // ===== 车牌识别记录管理 =====
+
+        public static bool SavePlateRecognitionRecord(PlateRecognitionRecord record)
+        {
+            try
+            {
+                var sql = @"INSERT INTO PlateRecognitionRecords
+                    (Id, PlateNumber, Confidence, CameraName, CameraType, ImagePath, VehicleId, RecognizeTime, Source, Remark, CreateTime)
+                    VALUES (@Id, @Plate, @Conf, @CamName, @CamType, @ImgPath, @VId, @Time, @Src, @Remark, @CT)";
+                return ExecuteNonQuery(sql,
+                    new SQLiteParameter("@Id", record.Id),
+                    new SQLiteParameter("@Plate", (object)record.PlateNumber ?? DBNull.Value),
+                    new SQLiteParameter("@Conf", record.Confidence),
+                    new SQLiteParameter("@CamName", (object)record.CameraName ?? DBNull.Value),
+                    new SQLiteParameter("@CamType", (object)record.CameraType ?? DBNull.Value),
+                    new SQLiteParameter("@ImgPath", (object)record.ImagePath ?? DBNull.Value),
+                    new SQLiteParameter("@VId", (object)record.VehicleId ?? DBNull.Value),
+                    new SQLiteParameter("@Time", record.RecognizeTime),
+                    new SQLiteParameter("@Src", record.Source ?? "Auto"),
+                    new SQLiteParameter("@Remark", (object)record.Remark ?? DBNull.Value),
+                    new SQLiteParameter("@CT", record.CreateTime)
+                ) > 0;
+            }
+            catch { return false; }
+        }
+
+        public static List<PlateRecognitionRecord> GetRecognitionRecords(DateTime? start, DateTime? end, string plateFilter)
+        {
+            var list = new List<PlateRecognitionRecord>();
+            try
+            {
+                var sql = "SELECT * FROM PlateRecognitionRecords WHERE 1=1";
+                var ps = new List<SQLiteParameter>();
+                if (start.HasValue) { sql += " AND RecognizeTime >= @Start"; ps.Add(new SQLiteParameter("@Start", start.Value)); }
+                if (end.HasValue) { sql += " AND RecognizeTime <= @End"; ps.Add(new SQLiteParameter("@End", end.Value.AddDays(1))); }
+                if (!string.IsNullOrWhiteSpace(plateFilter)) { sql += " AND PlateNumber LIKE @Plate"; ps.Add(new SQLiteParameter("@Plate", "%" + plateFilter.Trim() + "%")); }
+                sql += " ORDER BY RecognizeTime DESC LIMIT 500";
+
+                var dt = ExecuteQuery(sql, ps.ToArray());
+                foreach (DataRow row in dt.Rows)
+                {
+                    list.Add(new PlateRecognitionRecord
+                    {
+                        Id = row["Id"].ToString(),
+                        PlateNumber = row["PlateNumber"] == DBNull.Value ? null : row["PlateNumber"].ToString(),
+                        Confidence = row["Confidence"] == DBNull.Value ? 0 : Convert.ToDouble(row["Confidence"]),
+                        CameraName = row["CameraName"] == DBNull.Value ? null : row["CameraName"].ToString(),
+                        CameraType = row["CameraType"] == DBNull.Value ? null : row["CameraType"].ToString(),
+                        ImagePath = row["ImagePath"] == DBNull.Value ? null : row["ImagePath"].ToString(),
+                        VehicleId = row["VehicleId"] == DBNull.Value ? null : row["VehicleId"].ToString(),
+                        RecognizeTime = Convert.ToDateTime(row["RecognizeTime"]),
+                        Source = row["Source"] == DBNull.Value ? "Auto" : row["Source"].ToString(),
+                        Remark = row["Remark"] == DBNull.Value ? null : row["Remark"].ToString(),
+                        CreateTime = Convert.ToDateTime(row["CreateTime"])
+                    });
+                }
+            }
+            catch { }
+            return list;
         }
 
         #endregion

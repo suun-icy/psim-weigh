@@ -56,11 +56,13 @@ namespace pism_weigh
             _btnDelete = new Button { Text = "删除", Location = new Point(106, 536), Size = new Size(60, 30) };
             _btnSetDefault = new Button { Text = "设为默认", Location = new Point(174, 536), Size = new Size(80, 30) };
             _btnClose = new Button { Text = "关闭", Location = new Point(340, 536), Size = new Size(70, 30) };
+            var _btnHistory = new Button { Text = "识别记录", Location = new Point(260, 536), Size = new Size(74, 30), BackColor = Color.FromArgb(24, 144, 255), ForeColor = Color.White, FlatStyle = FlatStyle.Flat };
+            _btnHistory.Click += BtnHistory_Click;
             _btnSave.Click += BtnSave_Click;
             _btnDelete.Click += BtnDelete_Click;
             _btnSetDefault.Click += BtnSetDefault_Click;
             _btnClose.Click += (s, e) => { _cameraService?.Disconnect(); Close(); };
-            pnlList.Controls.AddRange(new Control[] { _btnSave, _btnDelete, _btnSetDefault, _btnClose });
+            pnlList.Controls.AddRange(new Control[] { _btnSave, _btnDelete, _btnSetDefault, _btnHistory, _btnClose });
             this.Controls.Add(pnlList);
 
             // ===== 右侧：配置 + 预览 =====
@@ -96,7 +98,7 @@ namespace pism_weigh
             _lblPlateResult = new Label { Text = "", Location = new Point(8, 208), Size = new Size(476, 20), Font = new Font("Microsoft YaHei UI", 11F, FontStyle.Bold), ForeColor = Color.DarkGreen };
 
             _btnConnect.Click += BtnConnect_Click;
-            _btnDisconnect.Click += (s, e) => { _cameraService?.Disconnect(); _btnConnect.Enabled = true; _btnDisconnect.Enabled = false; _lblStatus.Text = "状态: 已断开"; };
+            _btnDisconnect.Click += (s, e) => { _cameraService?.Disconnect(); _btnConnect.Enabled = true; _btnDisconnect.Enabled = false; _lblStatus.Text = "状态: 已断开"; _lblStatus.ForeColor = Color.Gray; };
             _btnSnapshot.Click += BtnSnapshot_Click;
             _btnRecognize.Click += BtnRecognize_Click;
 
@@ -263,19 +265,87 @@ namespace pism_weigh
             if (_cameraService == null || !_cameraService.IsConnected)
             { MessageBox.Show("请先连接摄像头。"); return; }
             var snap = _cameraService.CaptureSnapshot();
-            if (snap != null) { _picPreview.Image?.Dispose(); _picPreview.Image = snap; }
+            if (snap != null)
+            {
+                _picPreview.Image?.Dispose();
+                _picPreview.Image = snap;
+
+                // 自动保存抓拍图片
+                var imgPath = Services.RecognitionManager.SaveSnapshotImage(snap, "snap_" + DateTime.Now.Ticks);
+                _lblPlateResult.Text = "已保存抓拍: " + (imgPath ?? "失败");
+            }
         }
 
         private void BtnRecognize_Click(object sender, EventArgs e)
         {
             if (_cameraService == null || !_cameraService.IsConnected)
             { MessageBox.Show("请先连接摄像头。"); return; }
+
             var snap = _cameraService.CaptureSnapshot();
             if (snap == null) return;
             _picPreview.Image?.Dispose(); _picPreview.Image = snap;
 
             var plate = _lprService?.Recognize(snap);
-            _lblPlateResult.Text = !string.IsNullOrWhiteSpace(plate) ? "识别结果: " + plate : "识别结果: 未检测到车牌";
+            if (!string.IsNullOrWhiteSpace(plate))
+            {
+                // 结构化保存识别记录 + 图片
+                var record = Services.RecognitionManager.SaveRecognition(
+                    plate, snap,
+                    _editing?.Name ?? "N/A",
+                    _editing?.CameraType ?? "Generic",
+                    "Manual");
+
+                _lblPlateResult.Text = string.Format("识别结果: {0}  |  已保存 ({1})",
+                    plate, record.ImagePath != null ? "含图片" : "无图片");
+            }
+            else
+            {
+                _lblPlateResult.Text = "识别结果: 未检测到车牌";
+            }
+        }
+
+        private void BtnHistory_Click(object sender, EventArgs e)
+        {
+            var form = new Form
+            {
+                Text = "车牌识别记录",
+                ClientSize = new Size(860, 480),
+                StartPosition = FormStartPosition.CenterParent,
+                Font = new Font("Microsoft YaHei UI", 9F)
+            };
+
+            var dgv = new DataGridView
+            {
+                Location = new Point(12, 12),
+                Size = new Size(836, 420),
+                AllowUserToAddRows = false, AllowUserToDeleteRows = false,
+                ReadOnly = true, SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells,
+                RowHeadersVisible = false
+            };
+
+            var records = DatabaseHelper.GetRecognitionRecords(DateTime.Today.AddDays(-30), DateTime.Now, null);
+            dgv.DataSource = records;
+
+            // 中文化列头
+            var map = new System.Collections.Generic.Dictionary<string, string>
+            {
+                {"PlateNumber", "车牌号"}, {"Confidence", "置信度"}, {"CameraName", "摄像头"},
+                {"CameraType", "类型"}, {"Source", "来源"}, {"ImagePath", "图片路径"},
+                {"RecognizeTime", "识别时间"}, {"Remark", "备注"}
+            };
+            dgv.DataBindingComplete += (s, ev) =>
+            {
+                foreach (DataGridViewColumn col in dgv.Columns)
+                    if (map.ContainsKey(col.DataPropertyName)) col.HeaderText = map[col.DataPropertyName];
+            };
+
+            var btnClose = new Button { Text = "关闭", Location = new Point(770, 440), Size = new Size(75, 28) };
+            btnClose.Click += (s, ev) => form.Close();
+
+            form.Controls.Add(dgv);
+            form.Controls.Add(btnClose);
+            form.ShowDialog();
         }
     }
 }
