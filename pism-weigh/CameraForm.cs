@@ -96,6 +96,21 @@ namespace pism_weigh
             RefreshList();
         }
 
+        private void BtnClose_Click(object sender, EventArgs e)
+        {
+            _cameraService?.Disconnect();
+            Close();
+        }
+
+        private void BtnDisconnect_Click(object sender, EventArgs e)
+        {
+            _cameraService?.Disconnect();
+            _btnConnect.Enabled = true;
+            _btnDisconnect.Enabled = false;
+            _lblStatus.Text = "状态: 已断开";
+            _lblStatus.ForeColor = System.Drawing.Color.Gray;
+        }
+
         private void BtnConnect_Click(object sender, EventArgs e)
         {
             SelectCamera();

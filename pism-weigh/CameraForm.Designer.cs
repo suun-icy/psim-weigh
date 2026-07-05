@@ -67,7 +67,7 @@ namespace pism_weigh
             _btnDelete.Click += BtnDelete_Click;
             _btnSetDefault.Click += BtnSetDefault_Click;
             _btnHistory.Click += BtnHistory_Click;
-            _btnClose.Click += (s, e) => { _cameraService?.Disconnect(); Close(); };
+            _btnClose.Click += BtnClose_Click;
             pnlList.Controls.AddRange(new Control[] { _btnSave, _btnDelete, _btnSetDefault, _btnHistory, _btnClose });
             this.Controls.Add(pnlList);
 
@@ -82,16 +82,74 @@ namespace pism_weigh
             grpConfig = new GroupBox { Text = "摄像头参数", Location = new Point(8, 8), Size = new Size(472, 250), Font = new Font("Microsoft YaHei UI", 9F) };
 
             int y = 24;
-            (lblName, _txtName) = AddRow(grpConfig, "名称", ref y, 150);
-            (lblType, _cboType) = AddComboRow(grpConfig, "类型", ref y, 150, "Generic", "ONVIF", "Hikvision", "USB");
-            (lblIP, _txtIP) = AddRow(grpConfig, "IP地址", ref y, 150);
-            (lblPort, _txtPort) = AddRow(grpConfig, "端口", ref y, 80);
-            (lblUser, _txtUser) = AddRow(grpConfig, "用户名", ref y, 120);
-            (lblPwd, _txtPwd) = AddRow(grpConfig, "密码", ref y, 120);
-            _txtPwd.PasswordChar = '*';
-            (lblChannel, _txtChannel) = AddRow(grpConfig, "通道号", ref y, 60);
-            (lblRTSP, _txtRTSP) = AddRow(grpConfig, "RTSP地址", ref y, 300);
-            (lblRes, _cboResolution) = AddComboRow(grpConfig, "分辨率", ref y, 120, "1920x1080", "1280x720", "640x480");
+
+            // 名称
+            lblName = new Label { Text = "名称", Location = new Point(8, y + 3), Size = new Size(65, 24) };
+            _txtName = new TextBox { Location = new Point(80, y), Size = new Size(150, 24), BorderStyle = BorderStyle.FixedSingle };
+            grpConfig.Controls.Add(lblName);
+            grpConfig.Controls.Add(_txtName);
+            y += 30;
+
+            // 类型
+            lblType = new Label { Text = "类型", Location = new Point(8, y + 3), Size = new Size(65, 24) };
+            _cboType = new ComboBox { Location = new Point(80, y), Size = new Size(150, 24), DropDownStyle = ComboBoxStyle.DropDownList };
+            _cboType.Items.AddRange(new[] { "Generic", "ONVIF", "Hikvision", "USB" });
+            _cboType.SelectedIndex = 0;
+            grpConfig.Controls.Add(lblType);
+            grpConfig.Controls.Add(_cboType);
+            y += 30;
+
+            // IP地址
+            lblIP = new Label { Text = "IP地址", Location = new Point(8, y + 3), Size = new Size(65, 24) };
+            _txtIP = new TextBox { Location = new Point(80, y), Size = new Size(150, 24), BorderStyle = BorderStyle.FixedSingle };
+            grpConfig.Controls.Add(lblIP);
+            grpConfig.Controls.Add(_txtIP);
+            y += 30;
+
+            // 端口
+            lblPort = new Label { Text = "端口", Location = new Point(8, y + 3), Size = new Size(65, 24) };
+            _txtPort = new TextBox { Location = new Point(80, y), Size = new Size(80, 24), BorderStyle = BorderStyle.FixedSingle };
+            grpConfig.Controls.Add(lblPort);
+            grpConfig.Controls.Add(_txtPort);
+            y += 30;
+
+            // 用户名
+            lblUser = new Label { Text = "用户名", Location = new Point(8, y + 3), Size = new Size(65, 24) };
+            _txtUser = new TextBox { Location = new Point(80, y), Size = new Size(120, 24), BorderStyle = BorderStyle.FixedSingle };
+            grpConfig.Controls.Add(lblUser);
+            grpConfig.Controls.Add(_txtUser);
+            y += 30;
+
+            // 密码
+            lblPwd = new Label { Text = "密码", Location = new Point(8, y + 3), Size = new Size(65, 24) };
+            _txtPwd = new TextBox { Location = new Point(80, y), Size = new Size(120, 24), BorderStyle = BorderStyle.FixedSingle, PasswordChar = '*' };
+            grpConfig.Controls.Add(lblPwd);
+            grpConfig.Controls.Add(_txtPwd);
+            y += 30;
+
+            // 通道号
+            lblChannel = new Label { Text = "通道号", Location = new Point(8, y + 3), Size = new Size(65, 24) };
+            _txtChannel = new TextBox { Location = new Point(80, y), Size = new Size(60, 24), BorderStyle = BorderStyle.FixedSingle };
+            grpConfig.Controls.Add(lblChannel);
+            grpConfig.Controls.Add(_txtChannel);
+            y += 30;
+
+            // RTSP地址
+            lblRTSP = new Label { Text = "RTSP地址", Location = new Point(8, y + 3), Size = new Size(65, 24) };
+            _txtRTSP = new TextBox { Location = new Point(80, y), Size = new Size(300, 24), BorderStyle = BorderStyle.FixedSingle };
+            grpConfig.Controls.Add(lblRTSP);
+            grpConfig.Controls.Add(_txtRTSP);
+            y += 30;
+
+            // 分辨率
+            lblRes = new Label { Text = "分辨率", Location = new Point(8, y + 3), Size = new Size(65, 24) };
+            _cboResolution = new ComboBox { Location = new Point(80, y), Size = new Size(120, 24), DropDownStyle = ComboBoxStyle.DropDownList };
+            _cboResolution.Items.AddRange(new[] { "1920x1080", "1280x720", "640x480" });
+            _cboResolution.SelectedIndex = 0;
+            grpConfig.Controls.Add(lblRes);
+            grpConfig.Controls.Add(_cboResolution);
+            y += 30;
+
             _chkEnabled = new CheckBox { Text = "启用", Location = new Point(80, y), Size = new Size(60, 24), Checked = true };
             grpConfig.Controls.Add(_chkEnabled);
             pnlRight.Controls.Add(grpConfig);
@@ -115,7 +173,7 @@ namespace pism_weigh
             _lblPlateResult = new Label { Text = "", Location = new Point(8, 210), Size = new Size(456, 20), Font = new Font("Microsoft YaHei UI", 11F, FontStyle.Bold), ForeColor = Color.DarkGreen };
 
             _btnConnect.Click += BtnConnect_Click;
-            _btnDisconnect.Click += (s, e) => { _cameraService?.Disconnect(); _btnConnect.Enabled = true; _btnDisconnect.Enabled = false; _lblStatus.Text = "状态: 已断开"; _lblStatus.ForeColor = Color.Gray; };
+            _btnDisconnect.Click += BtnDisconnect_Click;
             _btnSnapshot.Click += BtnSnapshot_Click;
             _btnRecognize.Click += BtnRecognize_Click;
 
@@ -123,29 +181,13 @@ namespace pism_weigh
             pnlRight.Controls.Add(grpPreview);
             this.Controls.Add(pnlRight);
 
-            this.FormClosing += (s, e) => { if (!DesignMode) _cameraService?.Disconnect(); };
+            this.FormClosing += CameraForm_FormClosing;
         }
 
-        private (Label, TextBox) AddRow(Control parent, string label, ref int y, int tw)
+        private void CameraForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            var lbl = new Label { Text = label, Location = new Point(8, y + 3), Size = new Size(65, 24) };
-            var txt = new TextBox { Location = new Point(80, y), Size = new Size(tw, 24), BorderStyle = BorderStyle.FixedSingle };
-            parent.Controls.Add(lbl);
-            parent.Controls.Add(txt);
-            y += 30;
-            return (lbl, txt);
-        }
-
-        private (Label, ComboBox) AddComboRow(Control parent, string label, ref int y, int tw, params string[] items)
-        {
-            var lbl = new Label { Text = label, Location = new Point(8, y + 3), Size = new Size(65, 24) };
-            var cbo = new ComboBox { Location = new Point(80, y), Size = new Size(tw, 24), DropDownStyle = ComboBoxStyle.DropDownList };
-            cbo.Items.AddRange(items);
-            cbo.SelectedIndex = 0;
-            parent.Controls.Add(lbl);
-            parent.Controls.Add(cbo);
-            y += 30;
-            return (lbl, cbo);
+            if (!DesignMode)
+                _cameraService?.Disconnect();
         }
 
         private void CameraForm_Load(object sender, System.EventArgs e)
