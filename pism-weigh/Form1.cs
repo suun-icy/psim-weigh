@@ -591,6 +591,8 @@ namespace pism_weigh
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            if (DesignMode) return;
+
             ApplyModernUiStyle();
             _config = AppConfig.Load();
 
