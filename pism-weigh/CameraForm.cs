@@ -240,11 +240,21 @@ namespace pism_weigh
             {
                 _btnConnect.Enabled = false;
                 _btnDisconnect.Enabled = true;
-                _lblStatus.Text = "状态: 已连接";
+
+                // 区分真实摄像头与模拟模式
+                bool isReal = false;
+                if (_cameraService is GenericCameraService gcs)
+                    isReal = gcs.IsRealCamera;
+                else if (_cameraService is OnvifCameraService)
+                    isReal = true;
+
+                _lblStatus.Text = isReal ? "状态: 已连接 (实时)" : "状态: 模拟模式";
+                _lblStatus.ForeColor = isReal ? Color.DarkGreen : Color.DarkOrange;
             }
             else
             {
                 _lblStatus.Text = "状态: 连接失败";
+                _lblStatus.ForeColor = Color.Red;
             }
         }
 
