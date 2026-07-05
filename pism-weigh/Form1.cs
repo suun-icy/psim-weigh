@@ -59,6 +59,11 @@ namespace pism_weigh
         private System.Windows.Forms.ComboBox cboOperator;
         private System.Windows.Forms.CheckBox chkUsePresetTare;
         private System.Windows.Forms.Label lblPresetTare;
+        private System.Windows.Forms.PictureBox picCameraFeed;
+        private System.Windows.Forms.DataGridView dgvRecognitionRecords;
+        private System.Windows.Forms.Label lblCameraStatus;
+        private Interfaces.ICameraService _liveCamera;
+        private System.Timers.Timer _cameraPollTimer;
 
 		public Form1()
         {
@@ -244,6 +249,9 @@ namespace pism_weigh
 
             // 填充下拉数据
             PopulateDropdowns();
+
+            // 初始化摄像头监控面板
+            InitCameraPanel();
         }
 
         private System.Windows.Forms.Label CreateLabel(string text, int x, int y)
@@ -254,6 +262,235 @@ namespace pism_weigh
                 Location = new System.Drawing.Point(x, y),
                 Font = new System.Drawing.Font("Microsoft YaHei UI", 9F)
             };
+        }
+
+        private void InitCameraPanel()
+        {
+            // 扩展主窗口宽度
+            this.Width = 1120;
+
+            // panel3 右边界对齐
+            var cameraPanel = new System.Windows.Forms.Panel
+            {
+                Location = new System.Drawing.Point(708, panel3.Top),
+                Size = new System.Drawing.Size(385, panel3.Height),
+                BackColor = System.Drawing.Color.White,
+                BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+            };
+
+            // 标题
+            cameraPanel.Controls.Add(new System.Windows.Forms.Label
+            {
+                Text = "实时监控",
+                Location = new System.Drawing.Point(6, 5),
+                Size = new System.Drawing.Size(60, 20),
+                Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Bold)
+            });
+
+            // 连接按钮
+            var btnConnect = new System.Windows.Forms.Button
+            {
+                Text = "连接",
+                Location = new System.Drawing.Point(165, 2),
+                Size = new System.Drawing.Size(50, 24),
+                Font = new System.Drawing.Font("Microsoft YaHei UI", 7.5F),
+                BackColor = System.Drawing.Color.FromArgb(82, 196, 26),
+                ForeColor = System.Drawing.Color.White,
+                FlatStyle = System.Windows.Forms.FlatStyle.Flat
+            };
+            btnConnect.FlatAppearance.BorderSize = 0;
+
+            var btnDisconnect = new System.Windows.Forms.Button
+            {
+                Text = "断开",
+                Location = new System.Drawing.Point(219, 2),
+                Size = new System.Drawing.Size(50, 24),
+                Font = new System.Drawing.Font("Microsoft YaHei UI", 7.5F),
+                Enabled = false
+            };
+
+            btnConnect.Click += (s, e) =>
+            {
+                ConnectLiveCamera();
+                btnConnect.Enabled = false;
+                btnDisconnect.Enabled = true;
+            };
+            btnDisconnect.Click += (s, e) =>
+            {
+                DisconnectLiveCamera();
+                btnConnect.Enabled = true;
+                btnDisconnect.Enabled = false;
+            };
+
+            var btnSnap = new System.Windows.Forms.Button
+            {
+                Text = "识别",
+                Location = new System.Drawing.Point(273, 2),
+                Size = new System.Drawing.Size(50, 24),
+                Font = new System.Drawing.Font("Microsoft YaHei UI", 7.5F),
+                BackColor = System.Drawing.Color.FromArgb(250, 173, 20),
+                ForeColor = System.Drawing.Color.White,
+                FlatStyle = System.Windows.Forms.FlatStyle.Flat
+            };
+            btnSnap.FlatAppearance.BorderSize = 0;
+            btnSnap.Click += btnCameraSnap_Click;
+
+            var btnCfg = new System.Windows.Forms.Button
+            {
+                Text = "配置",
+                Location = new System.Drawing.Point(328, 2),
+                Size = new System.Drawing.Size(50, 24),
+                Font = new System.Drawing.Font("Microsoft YaHei UI", 7.5F),
+                UseVisualStyleBackColor = true
+            };
+            btnCfg.Click += (s, e) => { new CameraForm().ShowDialog(); };
+
+            cameraPanel.Controls.Add(btnConnect);
+            cameraPanel.Controls.Add(btnDisconnect);
+            cameraPanel.Controls.Add(btnSnap);
+            cameraPanel.Controls.Add(btnCfg);
+
+            // 视频画面
+            picCameraFeed = new System.Windows.Forms.PictureBox
+            {
+                Location = new System.Drawing.Point(6, 30),
+                Size = new System.Drawing.Size(372, 210),
+                BackColor = System.Drawing.Color.Black,
+                SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom,
+                BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+            };
+            cameraPanel.Controls.Add(picCameraFeed);
+
+            lblCameraStatus = new System.Windows.Forms.Label
+            {
+                Text = "状态: 未连接",
+                Location = new System.Drawing.Point(6, 244),
+                Size = new System.Drawing.Size(150, 16),
+                Font = new System.Drawing.Font("Microsoft YaHei UI", 7.5F),
+                ForeColor = System.Drawing.Color.Gray
+            };
+            cameraPanel.Controls.Add(lblCameraStatus);
+
+            // 最近识别记录
+            cameraPanel.Controls.Add(new System.Windows.Forms.Label
+            {
+                Text = "最近识别",
+                Location = new System.Drawing.Point(6, 262),
+                Size = new System.Drawing.Size(60, 16),
+                Font = new System.Drawing.Font("Microsoft YaHei UI", 8F, System.Drawing.FontStyle.Bold)
+            });
+
+            dgvRecognitionRecords = new System.Windows.Forms.DataGridView
+            {
+                Location = new System.Drawing.Point(6, 280),
+                Size = new System.Drawing.Size(372, 53),
+                AllowUserToAddRows = false,
+                AllowUserToDeleteRows = false,
+                ReadOnly = true,
+                RowHeadersVisible = false,
+                AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells,
+                BackgroundColor = System.Drawing.Color.White,
+                ColumnHeadersHeight = 24
+            };
+            cameraPanel.Controls.Add(dgvRecognitionRecords);
+
+            this.Controls.Add(cameraPanel);
+            RefreshRecognitionRecords();
+        }
+
+        private void ConnectLiveCamera()
+        {
+            try
+            {
+                var config = DatabaseHelper.GetDefaultCamera();
+                if (config == null)
+                {
+                    lblCameraStatus.Text = "状态: 未配置摄像头";
+                    return;
+                }
+
+                DisconnectLiveCamera();
+
+                switch (config.CameraType)
+                {
+                    case "Hikvision": _liveCamera = new Services.HikvisionCameraService(); break;
+                    case "ONVIF": _liveCamera = new Services.OnvifCameraService(); break;
+                    default: _liveCamera = new Services.GenericCameraService(); break;
+                }
+
+                _liveCamera.FrameCaptured += frame =>
+                {
+                    if (picCameraFeed != null && !picCameraFeed.IsDisposed)
+                    {
+                        try
+                        {
+                            picCameraFeed.Image?.Dispose();
+                            picCameraFeed.Image = new System.Drawing.Bitmap(frame);
+                        }
+                        catch { }
+                    }
+                };
+
+                if (_liveCamera.Connect(config))
+                {
+                    lblCameraStatus.Text = "状态: 已连接 " + config.Name;
+                    lblCameraStatus.ForeColor = System.Drawing.Color.DarkGreen;
+                }
+                else
+                {
+                    lblCameraStatus.Text = "状态: 连接失败";
+                    lblCameraStatus.ForeColor = System.Drawing.Color.Red;
+                }
+            }
+            catch (Exception ex)
+            {
+                lblCameraStatus.Text = "状态: 错误 - " + ex.Message;
+                lblCameraStatus.ForeColor = System.Drawing.Color.Red;
+            }
+        }
+
+        private void DisconnectLiveCamera()
+        {
+            try
+            {
+                _liveCamera?.Disconnect();
+                _liveCamera = null;
+                lblCameraStatus.Text = "状态: 未连接";
+                lblCameraStatus.ForeColor = System.Drawing.Color.Gray;
+            }
+            catch { }
+        }
+
+        private void RefreshRecognitionRecords()
+        {
+            try
+            {
+                var records = DatabaseHelper.GetRecognitionRecords(DateTime.Today.AddDays(-1), DateTime.Now, null);
+                dgvRecognitionRecords.DataSource = null;
+                dgvRecognitionRecords.DataSource = records.Take(5).ToList();
+
+                var map = new System.Collections.Generic.Dictionary<string, string>
+                {
+                    {"PlateNumber", "车牌"}, {"RecognizeTime", "时间"}, {"Source", "来源"}
+                };
+                foreach (System.Windows.Forms.DataGridViewColumn col in dgvRecognitionRecords.Columns)
+                    if (map.ContainsKey(col.DataPropertyName)) col.HeaderText = map[col.DataPropertyName];
+            }
+            catch { }
+        }
+
+        private void FillPlateToForm(string plate)
+        {
+            if (string.IsNullOrWhiteSpace(plate)) return;
+            if (plate.Length >= 1 && comboBox7.Items.Contains(plate.Substring(0, 1)))
+                comboBox7.SelectedItem = plate.Substring(0, 1);
+            if (plate.Length > 1)
+                textBox5.Text = plate.Substring(1);
+            if (!plateHistoryCache.Contains(plate))
+                plateHistoryCache.Insert(0, plate);
+            RefreshPlateHistoryDropdown(plateHistoryCache);
+            comboBoxPlateHistory.Text = plate;
+            CheckPresetTare(plate);
         }
 
         private System.Windows.Forms.ComboBox CreateDropDown(int x, int y, int width)
@@ -1442,6 +1679,36 @@ namespace pism_weigh
         {
             try
             {
+                // 优先使用已连接的直播摄像头
+                if (_liveCamera != null && _liveCamera.IsConnected)
+                {
+                    var liveSnap = _liveCamera.CaptureSnapshot();
+                    if (liveSnap != null)
+                    {
+                        var liveLpr = new Services.PlateRecognizer(false);
+                        var livePlate = liveLpr.Recognize(liveSnap);
+                        if (!string.IsNullOrWhiteSpace(livePlate))
+                        {
+                            Services.RecognitionManager.SaveRecognition(
+                                livePlate, liveSnap, "实时监控", "Generic", "Auto");
+                            FillPlateToForm(livePlate);
+                        }
+                        else
+                        {
+                            // 保存图片但不识别
+                            var imgPath = Services.RecognitionManager.SaveSnapshotImage(liveSnap, "live_" + DateTime.Now.Ticks);
+                            Services.RecognitionManager.SaveRecognition(
+                                null, liveSnap, "实时监控", "Generic", "Auto", 0);
+                            MessageBox.Show("未识别到车牌，已保存抓拍图像。\n蓝区占比: " + liveLpr.BluePixelRatio.ToString("P2"),
+                                "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        liveSnap.Dispose();
+                        RefreshRecognitionRecords();
+                        return;
+                    }
+                }
+
+                // 回退：临时连接摄像头抓拍
                 var config = DatabaseHelper.GetDefaultCamera();
                 if (config == null)
                 {
@@ -1484,8 +1751,11 @@ namespace pism_weigh
                             if (!plateHistoryCache.Contains(plate))
                                 plateHistoryCache.Insert(0, plate);
                             RefreshPlateHistoryDropdown(plateHistoryCache);
-                            comboBoxPlateHistory.Text = plate;
+            comboBoxPlateHistory.Text = plate;
                             CheckPresetTare(plate);
+
+                            // 刷新识别记录面板
+                            RefreshRecognitionRecords();
                         }
                         else
                         {
@@ -1672,6 +1942,7 @@ namespace pism_weigh
         /// </summary>
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
+            DisconnectLiveCamera();
             SaveCurrentConfig();
         }
     }
