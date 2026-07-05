@@ -20,12 +20,14 @@ namespace pism_weigh.Services
         public static Color BorderColor   = Color.FromArgb(217, 217, 217);
 
         /// <summary>应用到Form的基础样式</summary>
-        public static void StyleForm(Form form, string title = null)
+        public static void StyleForm(Form form, string title = null, Size? clientSize = null, Size? minimumSize = null)
         {
             form.Font = new Font("Microsoft YaHei UI", 9F);
             form.BackColor = BgGray;
             if (!string.IsNullOrEmpty(title)) form.Text = title;
             form.StartPosition = FormStartPosition.CenterScreen;
+            if (clientSize.HasValue) form.ClientSize = clientSize.Value;
+            if (minimumSize.HasValue) form.MinimumSize = minimumSize.Value;
         }
 
         /// <summary>美化DataGridView — 交替行色+蓝色表头+无网格线</summary>

@@ -74,9 +74,23 @@ namespace pism_weigh
 
         private void InitExtraControls()
         {
-            panel3.Height = 340;
-            this.Height = 630;
+            // 主界面尺寸
+            this.ClientSize = new System.Drawing.Size(1200, 800);
+            this.MinimumSize = new System.Drawing.Size(1000, 680);
+
+            // panel3 称重区域 — 左主区域，锚定上下左右
+            panel3.Location = new System.Drawing.Point(195, 236);
+            panel3.Size = new System.Drawing.Size(770, 360);
+            panel3.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            panel3.BorderStyle = BorderStyle.FixedSingle;
+
             panel6.Top = panel3.Bottom + 5;
+            panel6.Width = this.ClientSize.Width - 20;
+
+            // panel5 (串口消息)
+            panel5.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            panel5.Width = this.ClientSize.Width - 20;
+            panel5.Top = this.ClientSize.Height - panel5.Height - 10;
 
             // 右侧按钮列
             button2.Text = "称取重车";
@@ -266,14 +280,12 @@ namespace pism_weigh
 
         private void InitCameraPanel()
         {
-            // 扩展主窗口宽度
-            this.Width = 1120;
-
-            // panel3 右边界对齐
+            // 右侧监控面板 — 锚定右侧和上下
             var cameraPanel = new System.Windows.Forms.Panel
             {
-                Location = new System.Drawing.Point(708, panel3.Top),
-                Size = new System.Drawing.Size(385, panel3.Height),
+                Location = new System.Drawing.Point(975, panel3.Top),
+                Size = new System.Drawing.Size(210, panel3.Height),
+                Anchor = AnchorStyles.Top | AnchorStyles.Right,
                 BackColor = System.Drawing.Color.White,
                 BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
             };
@@ -353,8 +365,8 @@ namespace pism_weigh
             // 视频画面
             picCameraFeed = new System.Windows.Forms.PictureBox
             {
-                Location = new System.Drawing.Point(6, 30),
-                Size = new System.Drawing.Size(372, 210),
+                Location = new System.Drawing.Point(4, 30),
+                Size = new System.Drawing.Size(200, 120),
                 BackColor = System.Drawing.Color.Black,
                 SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom,
                 BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
@@ -364,8 +376,8 @@ namespace pism_weigh
             lblCameraStatus = new System.Windows.Forms.Label
             {
                 Text = "状态: 未连接",
-                Location = new System.Drawing.Point(6, 244),
-                Size = new System.Drawing.Size(150, 16),
+                Location = new System.Drawing.Point(4, 154),
+                Size = new System.Drawing.Size(190, 16),
                 Font = new System.Drawing.Font("Microsoft YaHei UI", 7.5F),
                 ForeColor = System.Drawing.Color.Gray
             };
@@ -375,15 +387,15 @@ namespace pism_weigh
             cameraPanel.Controls.Add(new System.Windows.Forms.Label
             {
                 Text = "最近识别",
-                Location = new System.Drawing.Point(6, 262),
+                Location = new System.Drawing.Point(4, 172),
                 Size = new System.Drawing.Size(60, 16),
                 Font = new System.Drawing.Font("Microsoft YaHei UI", 8F, System.Drawing.FontStyle.Bold)
             });
 
             dgvRecognitionRecords = new System.Windows.Forms.DataGridView
             {
-                Location = new System.Drawing.Point(6, 280),
-                Size = new System.Drawing.Size(372, 53),
+                Location = new System.Drawing.Point(4, 190),
+                Size = new System.Drawing.Size(200, 163),
                 AllowUserToAddRows = false,
                 AllowUserToDeleteRows = false,
                 ReadOnly = true,

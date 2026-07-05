@@ -30,16 +30,15 @@ namespace pism_weigh
         public SettingsForm()
         {
             InitializeComponent();
-            Services.UIStyler.StyleForm(this, "系统设置");
+            Services.UIStyler.StyleForm(this, "系统设置", new Size(700, 530), new Size(600, 450));
             InitExtraDataGroups();
         }
 
         private void InitExtraDataGroups()
         {
             // 扩展 tabBasic 以容纳 5 个组，改为 3 列布局
-            tabControl.Size = new Size(580, 460);
-            this.ClientSize = new Size(604, 550);
-            btnSave.Location = new Point(380, 480);
+            tabControl.Size = new Size(670, 460);
+            btnSave.Location = new Point(500, 480);
             btnCancel.Location = new Point(480, 480);
 
             // Column layout: x = 10, x = 200, x = 390; width = 180 each

@@ -17,7 +17,8 @@ namespace pism_weigh
         public QueryForm()
         {
             InitializeComponent();
-            ApplyStyle();
+            Services.UIStyler.StyleForm(this, "称重记录查询", new System.Drawing.Size(900, 600), new System.Drawing.Size(700, 450));
+            Services.UIStyler.StyleDataGridView(dgvRecords);
             ApplyLayout();
             dgvRecords.AutoGenerateColumns = true;
             dgvRecords.DataBindingComplete += DgvRecords_DataBindingComplete;

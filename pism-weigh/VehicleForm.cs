@@ -23,7 +23,7 @@ namespace pism_weigh
 
         private void VehicleForm_Load(object sender, EventArgs e)
         {
-            Services.UIStyler.StyleForm(this, "车辆档案管理");
+            Services.UIStyler.StyleForm(this, "车辆档案管理", new System.Drawing.Size(900, 600), new System.Drawing.Size(700, 480));
             RefreshList();
         }
 

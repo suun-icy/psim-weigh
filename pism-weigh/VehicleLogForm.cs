@@ -18,7 +18,7 @@ namespace pism_weigh
 
         private void VehicleLogForm_Load(object sender, EventArgs e)
         {
-            Services.UIStyler.StyleForm(this, "车辆进出场记录");
+            Services.UIStyler.StyleForm(this, "车辆进出场记录", new System.Drawing.Size(800, 550), new System.Drawing.Size(600, 400));
             dtpStart.Value = DateTime.Today;
             dtpEnd.Value = DateTime.Today;
             RefreshList();

@@ -35,7 +35,8 @@ namespace pism_weigh
 
         private void InitializeControls()
         {
-            this.ClientSize = new Size(960, 620);
+            this.ClientSize = new Size(800, 550);
+            this.MinimumSize = new Size(650, 450);
             this.Font = new Font("Microsoft YaHei UI", 9F);
 
             // ===== 左侧：摄像头列表 =====
